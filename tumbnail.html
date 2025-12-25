@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thumbnail Kuis Petualang Bendera</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #333;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Container Thumbnail 16:9 (1280x720) */
+        #thumbnail-container {
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Pattern Latar Belakang */
+        .bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px);
+            background-size: 30px 30px;
+            z-index: 1;
+        }
+
+        /* Efek Teks Judul 3D */
+        .title-text {
+            font-size: 130px;
+            font-weight: 900;
+            color: #FFD700; /* Emas */
+            text-transform: uppercase;
+            line-height: 1;
+            text-align: center;
+            z-index: 10;
+            /* Stroke Tebal */
+            -webkit-text-stroke: 6px #2563EB; 
+            /* Shadow Tumpuk untuk efek 3D kartun */
+            text-shadow: 
+                8px 8px 0px #2563EB,
+                16px 16px 0px rgba(0,0,0,0.2);
+            transform: rotate(-3deg);
+            margin-bottom: 20px;
+        }
+
+        .subtitle-text {
+            font-size: 70px;
+            font-weight: 700;
+            color: #fff;
+            background-color: #FF4081; /* Pink */
+            padding: 10px 40px;
+            border-radius: 50px;
+            border: 6px solid #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            z-index: 10;
+            transform: rotate(2deg);
+        }
+
+        /* Elemen Dekorasi */
+        .decoration-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            z-index: 2;
+        }
+
+        /* Bendera Melayang */
+        .floating-flag {
+            position: absolute;
+            border-radius: 15px;
+            border: 6px solid white;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            z-index: 5;
+            object-fit: cover;
+        }
+
+        /* Posisi Bendera */
+        .flag-1 { top: 80px; left: 80px; width: 220px; transform: rotate(-15deg); }
+        .flag-2 { top: 60px; right: 100px; width: 200px; transform: rotate(15deg); }
+        .flag-3 { bottom: 80px; left: 120px; width: 180px; transform: rotate(10deg); }
+        .flag-4 { bottom: 100px; right: 80px; width: 240px; transform: rotate(-10deg); }
+
+        /* Karakter/Emoji Besar */
+        .emoji-mascot {
+            position: absolute;
+            font-size: 200px;
+            z-index: 4;
+            bottom: -20px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+            animation: bounce 3s infinite ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .badge-50 {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #F59E0B;
+            color: white;
+            font-weight: 900;
+            font-size: 40px;
+            padding: 20px 30px;
+            border-radius: 20px;
+            border: 5px solid white;
+            box-shadow: 0 10px 0 #B45309;
+            z-index: 20;
+            transform: rotate(5deg);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="thumbnail-container">
+        <!-- Latar Pattern -->
+        <div class="bg-pattern"></div>
+        
+        <!-- Lingkaran Dekorasi -->
+        <div class="decoration-circle" style="width: 500px; height: 500px; top: -100px; left: -100px;"></div>
+        <div class="decoration-circle" style="width: 400px; height: 400px; bottom: -50px; right: -50px;"></div>
+
+        <!-- Bendera Hiasan -->
+        <img src="https://flagcdn.com/w640/id.png" class="floating-flag flag-1" alt="Indonesia">
+        <img src="https://flagcdn.com/w640/jp.png" class="floating-flag flag-2" alt="Jepang">
+        <img src="https://flagcdn.com/w640/gb.png" class="floating-flag flag-3" alt="Inggris">
+        <img src="https://flagcdn.com/w640/br.png" class="floating-flag flag-4" alt="Brasil">
+
+        <!-- Teks Utama -->
+        <div class="title-text">KUIS<br>BENDERA</div>
+        
+        <!-- Sub Judul -->
+        <div class="subtitle-text">Tebak Negaranya!</div>
+
+        <!-- Badge -->
+        <div class="badge-50">50 SOAL</div>
+
+        <!-- Emoji Maskot -->
+        <!-- <div class="emoji-mascot">🌍</div> -->
+    </div>
+
+</body>
+</html>
