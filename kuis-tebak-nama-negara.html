@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Tebak Negara - Cepat Tepat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #000000; /* Warna Hitam Pekat */
+            color: white;
+        }
+
+        /* Shadow untuk judul */
+        .title-shadow {
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.2), 0px 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Container Game dengan transisi warna halus & Rasio 16:9 */
+        #game-card {
+            transition: background 1s ease;
+            aspect-ratio: 16/9; /* Rasio Aspek 16:9 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Pusatkan konten vertikal */
+        }
+
+        /* Animasi Timer Bar - Besar */
+        .timer-container {
+            width: 100%;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.1); 
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            position: relative;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .timer-bar {
+            height: 100%;
+            /* Background akan di-set via JS */
+            width: 100%;
+            transform-origin: left;
+            transition: width linear;
+            box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* Styling Ubin Huruf */
+        .letter-tile {
+            width: 3.5rem;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white; /* Text Putih agar kontras dengan Gradient */
+            /* Background Gradient akan di-set via JS */
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .letter-tile:active {
+            transform: translateY(2px) scale(0.95);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .letter-tile.used {
+            background: rgba(255,255,255,0.1) !important; /* Override gradient */
+            color: rgba(255,255,255,0.2);
+            border-color: transparent;
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Slot Jawaban */
+        .answer-slot {
+            width: 3.5rem;
+            height: 3.5rem;
+            border: 3px dashed rgba(255,255,255,0.3);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #f8fafc;
+            background-color: rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .answer-slot.filled {
+            /* Background akan mengikuti warna huruf saat diisi */
+            border-style: solid;
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .answer-slot.correct {
+            background: #22c55e !important;
+            border-color: #16a34a;
+        }
+
+        .answer-slot.wrong {
+            background: #ef4444 !important;
+            border-color: #dc2626;
+        }
+
+        /* Animations */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-pop {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Tombol Musik */
+        .music-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Audio Element -->
+    <!-- Menggunakan lagu "Happy Days" dari Mixkit yang lebih stabil -->
+    <audio id="bg-music" loop preload="auto">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-happy-days-143.mp3" type="audio/mp3">
+        Browser Anda tidak mendukung elemen audio.
+    </audio>
+
+    <!-- Tombol Musik Global -->
+    <button id="toggle-music" class="music-btn" onclick="manualToggleMusic()" title="Matikan/Nyalakan Musik">
+        <i class="fas fa-volume-up"></i>
+    </button>
+
+    <!-- Wrapper diperlebar menjadi max-w-4xl agar rasio 16:9 terlihat luas dan konten muat -->
+    <div class="w-full max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-4 relative z-10">
+            <h1 class="text-5xl font-extrabold text-white title-shadow mb-2 tracking-wide">
+                TEBAK NEGARA
+            </h1>
+        </div>
+
+        <!-- Game Area -->
+        <div id="game-card" class="rounded-3xl p-8 shadow-2xl border-4 border-white/40 relative hidden w-full">
+            
+            <!-- Level Indicator (Pojok Kiri Atas) -->
+            <div class="absolute top-6 left-6 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+                <span id="level-indicator" class="text-white font-bold text-sm tracking-wider uppercase">LEVEL MUDAH</span>
+            </div>
+
+            <!-- Score Indicator -->
+            <div class="absolute top-6 right-6 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+                <i class="fas fa-flag text-yellow-400 mr-2"></i>
+                <span id="question-progress" class="text-white font-bold text-sm">1/40</span>
+            </div>
+
+            <!-- Judul Game di dalam Kartu -->
+            <div class="text-center mb-4 mt-2">
+                <h2 class="text-3xl font-extrabold text-white tracking-widest title-shadow">
+                    TEBAK NEGARA
+                </h2>
+            </div>
+
+            <!-- Timer Bar -->
+            <div class="timer-container">
+                <div id="timer-bar" class="timer-bar" style="width: 100%;"></div>
+            </div>
+
+            <!-- Teks Instruksi -->
+            <p class="text-white font-bold text-lg text-center mb-4 title-shadow">Susun huruf sebelum waktu habis!</p>
+
+            <!-- Pesan Feedback -->
+            <div id="feedback-msg" class="h-8 text-center font-bold text-lg mb-4 text-transparent transition-all duration-300"></div>
+
+            <!-- Area Jawaban (Slot Kosong) -->
+            <div id="answer-area" class="flex flex-wrap justify-center gap-2 mb-8 min-h-[60px]">
+                <!-- Slot jawaban akan di-generate di sini -->
+            </div>
+
+            <!-- Area Huruf Acak -->
+            <div id="letters-area" class="flex flex-wrap justify-center gap-3 mb-6">
+                <!-- Huruf acak akan di-generate di sini -->
+            </div>
+
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-slate-800/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/10 text-center">
+            <div class="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border-4 border-white animate-bounce">
+                <i class="fas fa-play text-4xl text-white"></i>
+            </div>
+            <h2 class="text-3xl font-extrabold mb-4 title-shadow text-white">Siap Bermain?</h2>
+            <ul class="text-left text-white font-semibold space-y-3 mb-8 bg-slate-900/50 p-6 rounded-2xl text-lg border border-white/5">
+                <li class="flex items-center"><i class="fas fa-layer-group text-green-400 mr-3"></i> Terdapat 3 Level (Mudah - Sulit).</li>
+                <li class="flex items-center"><i class="fas fa-globe text-blue-300 mr-3"></i> Total 40 Negara Dunia.</li>
+                <li class="flex items-center"><i class="fas fa-clock text-yellow-300 mr-3"></i> Waktu <strong>8 Detik</strong> per soal!</li>
+            </ul>
+            <button onclick="game.start()" class="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-2xl font-bold text-xl text-white shadow-lg transform transition-transform hover:scale-105 border-b-4 border-indigo-800 active:border-b-0 active:mt-1">
+                MULAI PETUALANGAN!
+            </button>
+        </div>
+
+        <!-- Result Modal -->
+        <div id="result-modal" class="fixed inset-0 modal-overlay hidden flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center border-4 border-blue-500 shadow-2xl transform scale-100 transition-transform">
+                <div id="result-icon" class="text-6xl mb-4"></div>
+                <h2 id="result-title" class="text-3xl font-bold mb-2 text-slate-800"></h2>
+                <p id="result-msg" class="text-slate-600 font-semibold mb-6"></p>
+                <button onclick="game.restart()" class="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold shadow-lg border-b-4 border-blue-700 active:border-b-0 active:mt-1">Main Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIKA MUSIK DIPERBAIKI ---
+        let isMusicPlaying = false;
+        const bgMusic = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('toggle-music');
+        
+        // Event listener untuk error audio
+        bgMusic.onerror = function() {
+            console.error("Error loading audio: ", bgMusic.error);
+            musicBtn.style.opacity = '0.5'; // Indikator visual error
+            musicBtn.title = "Audio Gagal Dimuat";
+        };
+
+        // Fungsi manual untuk tombol pojok
+        function manualToggleMusic() {
+            if (bgMusic.paused) {
+                tryPlayMusic();
+            } else {
+                pauseMusic();
+            }
+        }
+
+        function tryPlayMusic() {
+            // Set volume aman
+            bgMusic.volume = 0.3; 
+            
+            const playPromise = bgMusic.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Playback started successfully
+                    isMusicPlaying = true;
+                    musicBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                })
+                .catch(error => {
+                    // Auto-play was prevented
+                    console.warn("Playback prevented:", error);
+                    isMusicPlaying = false;
+                    musicBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                });
+            }
+        }
+
+        function pauseMusic() {
+            bgMusic.pause();
+            isMusicPlaying = false;
+            musicBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        }
+        
+        // --- DATA GAME ---
+
+        // Level Mudah (1-10)
+        const LEVEL_EASY = [
+            "INDONESIA", "MALAYSIA", "ARAB", "CHINA", "JEPANG", 
+            "INDIA", "KOREA", "MESIR", "TURKI", "RUSIA"
+        ];
+
+        // Level Sedang (11-25)
+        const LEVEL_MEDIUM = [
+            "SINGAPURA", "BRUNEI", "THAILAND", "VIETNAM", "INGGRIS", 
+            "JERMAN", "PRANCIS", "ITALIA", "SPANYOL", "BRASIL", 
+            "QATAR", "IRAK", "IRAN", "PERU", "LAOS"
+        ];
+
+        // Level Sulit (26-40)
+        const LEVEL_HARD = [
+            "AMERIKA", "AUSTRALIA", "BELANDA", "ARGENTINA", "PORTUGAL", 
+            "FILIPINA", "PALESTINA", "MAROKO", "KANADA", "MEKSIKO", 
+            "SWEDIA", "NORWEGIA", "BELGIA", "YUNANI", "SWISS"
+        ];
+
+        // Palet Warna Ceria untuk Anak (Background Container)
+        const KID_CONTAINER_GRADIENTS = [
+            "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%)", // Pink Permen Kapas
+            "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)", // Ungu Muda
+            "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", // Biru Laut Segar
+            "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)", // Sunset Pastel
+            "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)", // Biru Langit Lembut
+            "linear-gradient(135deg, #fbab7e 0%, #f7ce68 100%)", // Jeruk Segar
+            "linear-gradient(135deg, #85FFBD 0%, #FFFB7D 100%)"  // Hijau Lemon
+        ];
+
+        // Palet Warna Gradient untuk Elemen Game
+        const ELEMENT_GRADIENTS = [
+            "linear-gradient(135deg, #FF512F 0%, #DD2476 100%)", 
+            "linear-gradient(135deg, #00b09b 0%, #96c93d 100%)", 
+            "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)", 
+            "linear-gradient(135deg, #ff9966 0%, #ff5e62 100%)", 
+            "linear-gradient(135deg, #0093E9 0%, #80D0C7 100%)", 
+            "linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)"
+        ];
+
+        class Game {
+            constructor() {
+                this.score = 0;
+                this.currentQuestion = 0;
+                this.totalQuestions = 40; 
+                this.currentCountry = "";
+                this.scrambledLetters = [];
+                this.userAnswer = []; 
+                this.timerInterval = null;
+                this.isRoundActive = false;
+                this.voices = [];
+                this.currentGradient = "";
+                this.gameQueue = []; 
+                
+                // Elements
+                this.screens = {
+                    start: document.getElementById('start-screen'),
+                    game: document.getElementById('game-card'),
+                    result: document.getElementById('result-modal')
+                };
+                this.timerBar = document.getElementById('timer-bar');
+                this.answerArea = document.getElementById('answer-area');
+                this.lettersArea = document.getElementById('letters-area');
+                this.feedbackMsg = document.getElementById('feedback-msg');
+                this.levelIndicator = document.getElementById('level-indicator');
+                this.progressIndicator = document.getElementById('question-progress');
+                
+                // Init Voices
+                this.initSpeech();
+            }
+
+            initSpeech() {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    this.voices = window.speechSynthesis.getVoices();
+                };
+                this.voices = window.speechSynthesis.getVoices();
+            }
+
+            pickRandomGradient() {
+                this.currentGradient = ELEMENT_GRADIENTS[Math.floor(Math.random() * ELEMENT_GRADIENTS.length)];
+            }
+
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            start() {
+                // FORCE PLAY MUSIC HERE
+                // Ini penting: Memanggil audio.play() di dalam handler event 'click'
+                // adalah satu-satunya cara untuk menjamin musik bermain di semua browser.
+                tryPlayMusic();
+
+                this.score = 0;
+                this.currentQuestion = 0;
+                
+                const shuffledEasy = this.shuffleArray([...LEVEL_EASY]);
+                const shuffledMedium = this.shuffleArray([...LEVEL_MEDIUM]);
+                const shuffledHard = this.shuffleArray([...LEVEL_HARD]);
+                
+                this.gameQueue = [...shuffledEasy, ...shuffledMedium, ...shuffledHard];
+                
+                this.screens.start.classList.add('hidden');
+                this.screens.result.classList.add('hidden');
+                this.screens.game.classList.remove('hidden');
+                
+                this.nextRound();
+            }
+
+            restart() {
+                this.start();
+            }
+
+            nextRound() {
+                if (this.currentQuestion >= this.totalQuestions) {
+                    this.endGame();
+                    return;
+                }
+
+                this.currentCountry = this.gameQueue[this.currentQuestion];
+                this.currentQuestion++;
+                
+                this.progressIndicator.innerText = `${this.currentQuestion}/${this.totalQuestions}`;
+
+                this.updateLevelUI();
+
+                const bgGradient = KID_CONTAINER_GRADIENTS[Math.floor(Math.random() * KID_CONTAINER_GRADIENTS.length)];
+                this.screens.game.style.background = bgGradient;
+
+                this.pickRandomGradient();
+                this.timerBar.style.background = this.currentGradient;
+
+                this.userAnswer = new Array(this.currentCountry.length).fill(null);
+                this.isRoundActive = true;
+                this.feedbackMsg.innerText = "";
+                this.feedbackMsg.className = "h-8 text-center font-bold text-lg mb-4 text-transparent"; 
+
+                this.scrambleWord();
+                this.renderBoard();
+                this.startTimer(8); 
+            }
+
+            updateLevelUI() {
+                let levelText = "";
+                let textColor = "";
+
+                if (this.currentQuestion <= 10) {
+                    levelText = "LEVEL 1: MUDAH";
+                    textColor = "#4ade80"; // Green
+                } else if (this.currentQuestion <= 25) {
+                    levelText = "LEVEL 2: SEDANG";
+                    textColor = "#facc15"; // Yellow
+                } else {
+                    levelText = "LEVEL 3: SULIT";
+                    textColor = "#f87171"; // Red
+                }
+
+                this.levelIndicator.innerText = levelText;
+                this.levelIndicator.style.color = textColor;
+            }
+
+            scrambleWord() {
+                let chars = this.currentCountry.split('').map((char, index) => ({ char, id: index }));
+                for (let i = chars.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [chars[i], chars[j]] = [chars[j], chars[i]];
+                }
+                this.scrambledLetters = chars;
+            }
+
+            renderBoard() {
+                this.answerArea.innerHTML = '';
+                this.lettersArea.innerHTML = '';
+
+                for (let i = 0; i < this.currentCountry.length; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'answer-slot';
+                    slot.dataset.index = i;
+                    
+                    if (this.userAnswer[i]) {
+                        slot.innerText = this.userAnswer[i].char;
+                        slot.classList.add('filled', 'animate-pop');
+                        slot.style.background = this.currentGradient;
+                        slot.onclick = () => this.returnLetter(i);
+                    }
+                    this.answerArea.appendChild(slot);
+                }
+
+                this.scrambledLetters.forEach((item) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'letter-tile';
+                    btn.innerText = item.char;
+                    
+                    const isUsed = this.userAnswer.some(u => u && u.id === item.id);
+                    
+                    if (isUsed) {
+                        btn.classList.add('used');
+                        btn.style.background = 'none'; 
+                    } else {
+                        btn.style.background = this.currentGradient;
+                        btn.onclick = () => this.selectLetter(item);
+                    }
+                    
+                    this.lettersArea.appendChild(btn);
+                });
+            }
+
+            selectLetter(item) {
+                if (!this.isRoundActive) return;
+
+                const emptyIndex = this.userAnswer.findIndex(val => val === null);
+                if (emptyIndex !== -1) {
+                    this.userAnswer[emptyIndex] = item;
+                    this.renderBoard();
+                    this.checkPartialAnswer();
+                }
+            }
+
+            returnLetter(index) {
+                if (!this.isRoundActive) return;
+                this.userAnswer[index] = null;
+                this.renderBoard();
+            }
+
+            startTimer(seconds) {
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                
+                this.timerBar.style.transition = 'none';
+                this.timerBar.style.width = '100%';
+                
+                void this.timerBar.offsetWidth;
+
+                this.timerBar.style.transition = `width ${seconds}s linear`;
+                this.timerBar.style.width = '0%';
+
+                let timeLeft = seconds * 1000;
+                const tickRate = 100;
+
+                this.timerInterval = setInterval(() => {
+                    timeLeft -= tickRate;
+                    if (timeLeft <= 0) {
+                        this.timeIsUp();
+                    }
+                }, tickRate);
+            }
+
+            checkPartialAnswer() {
+                if (!this.userAnswer.includes(null)) {
+                    const attempt = this.userAnswer.map(u => u.char).join('');
+                    if (attempt === this.currentCountry) {
+                        this.roundSuccess();
+                    }
+                }
+            }
+
+            stopTimer() {
+                clearInterval(this.timerInterval);
+                const computedStyle = window.getComputedStyle(this.timerBar);
+                const w = computedStyle.getPropertyValue('width');
+                this.timerBar.style.transition = 'none';
+                this.timerBar.style.width = w; 
+            }
+
+            roundSuccess() {
+                this.stopTimer();
+                this.isRoundActive = false;
+                this.score += 10;
+                
+                this.setAnswerSlotsColor('correct');
+                this.showFeedback("HEBAT!", "text-green-600"); 
+                
+                this.speakAnswer(true);
+
+                setTimeout(() => this.nextRound(), 2000);
+            }
+
+            timeIsUp() {
+                this.stopTimer();
+                this.isRoundActive = false;
+                
+                this.revealCorrectAnswer();
+                this.speakAnswer(false);
+                
+                setTimeout(() => this.nextRound(), 3000);
+            }
+
+            giveUp() {
+                if(!this.isRoundActive) return;
+                this.timeIsUp();
+            }
+
+            revealCorrectAnswer() {
+                this.answerArea.innerHTML = '';
+                for (let char of this.currentCountry) {
+                    const slot = document.createElement('div');
+                    slot.className = 'answer-slot wrong animate-pop'; 
+                    slot.innerText = char;
+                    this.answerArea.appendChild(slot);
+                }
+            }
+
+            setAnswerSlotsColor(type) {
+                const slots = document.querySelectorAll('.answer-slot');
+                slots.forEach(slot => {
+                    slot.style.background = '';
+                    slot.classList.remove('filled', 'correct', 'wrong');
+                    slot.classList.add(type);
+                });
+            }
+
+            showFeedback(text, colorClass) {
+                this.feedbackMsg.innerText = text;
+                this.feedbackMsg.className = `h-8 text-center font-bold text-lg mb-4 ${colorClass} animate-pop bg-white/50 rounded-full mx-auto w-1/3 flex items-center justify-center backdrop-blur-sm`;
+            }
+
+            speakAnswer(isSuccess) {
+                if (!('speechSynthesis' in window)) return;
+
+                window.speechSynthesis.cancel();
+
+                const textToSay = this.currentCountry.toLowerCase();
+                const utterance = new SpeechSynthesisUtterance(textToSay);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.9; 
+                utterance.pitch = 1.1; 
+
+                this.voices = window.speechSynthesis.getVoices();
+                const femaleVoice = this.voices.find(v => 
+                    (v.name.includes('Google Bahasa Indonesia')) || 
+                    (v.lang === 'id-ID' && v.name.includes('Female')) ||
+                    (v.lang === 'id-ID') 
+                );
+
+                if (femaleVoice) {
+                    utterance.voice = femaleVoice;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            endGame() {
+                this.screens.game.classList.add('hidden');
+                this.screens.result.classList.remove('hidden');
+                
+                const title = document.getElementById('result-title');
+                const msg = document.getElementById('result-msg');
+                const icon = document.getElementById('result-icon');
+
+                if (this.score >= 350) {
+                    icon.innerHTML = '🏆';
+                    title.innerText = "Jenius Geografi!";
+                    title.className = "text-3xl font-bold mb-2 text-yellow-500";
+                    msg.innerText = `Kamu berhasil menaklukkan dunia! Skor: ${this.score}`;
+                } else if (this.score >= 200) {
+                    icon.innerHTML = '🌟';
+                    title.innerText = "Hebat Sekali!";
+                    title.className = "text-3xl font-bold mb-2 text-blue-500";
+                    msg.innerText = `Pengetahuanmu luas. Skor: ${this.score}`;
+                } else {
+                    icon.innerHTML = '🎒';
+                    title.innerText = "Belajar Lagi Yuk!";
+                    title.className = "text-3xl font-bold mb-2 text-slate-500";
+                    msg.innerText = `Terus semangat belajar ya. Skor: ${this.score}`;
+                }
+            }
+        }
+
+        const game = new Game();
+    </script>
+</body>
+</html>
