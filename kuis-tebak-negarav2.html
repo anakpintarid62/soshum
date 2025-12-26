@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Tebak Negara - Ala YouTube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: #000000;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .yt-shadow {
+            text-shadow: 4px 4px 0px #000000, -2px -2px 0px #000000;
+            -webkit-text-stroke: 1px black;
+        }
+
+        #game-card {
+            transition: background 0.5s ease;
+            aspect-ratio: 16/9;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* TIMER TEXT CIRCLE */
+        .timer-circle {
+            width: 100px;
+            height: 100px;
+            background: #ef4444; /* Merah */
+            border: 6px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 0 #000;
+            animation: pulse-timer 1s infinite;
+        }
+
+        @keyframes pulse-timer {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .flag-container {
+            width: 320px; /* Sedikit diperbesar */
+            height: 200px;
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            /* Margin dihapus agar bisa diatur flex parent */
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+        }
+        .flag-container:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+        .flag-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 0 40px 30px 40px;
+            width: 100%;
+        }
+
+        .option-btn {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 6px 0px #babbbc;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.1;
+        }
+
+        .option-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0px #babbbc;
+        }
+
+        .btn-a { background: #FF5252; color: white; box-shadow: 0 6px 0px #c62828; }
+        .btn-b { background: #448AFF; color: white; box-shadow: 0 6px 0px #1565c0; }
+        .btn-c { background: #FFD740; color: #333;   box-shadow: 0 6px 0px #f9a825; }
+        .btn-d { background: #69F0AE; color: #333;   box-shadow: 0 6px 0px #2e7d32; }
+
+        .option-btn.correct {
+            background: #00E676 !important;
+            color: white !important;
+            box-shadow: 0 0 20px #00E676, 0 6px 0px #00a846 !important;
+            animation: pulse 0.5s infinite;
+        }
+        .option-btn.wrong {
+            background: #FF1744 !important;
+            color: white !important;
+            opacity: 0.6;
+            box-shadow: none !important;
+            transform: translateY(6px);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .music-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Audio -->
+    <audio id="bg-music" loop preload="auto">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-happy-days-143.mp3" type="audio/mp3">
+    </audio>
+    
+    <button id="toggle-music" class="music-btn" onclick="toggleMusic()">
+        <i class="fas fa-volume-up"></i>
+    </button>
+
+    <div class="w-full max-w-4xl">
+        
+        <!-- Game Container -->
+        <div id="game-card" class="rounded-3xl shadow-2xl border-4 border-white hidden w-full bg-blue-500">
+            
+            <!-- Header Info -->
+            <div class="flex justify-between items-center px-8 py-4 z-10">
+                <div class="bg-black/40 px-4 py-2 rounded-full border-2 border-white text-white font-bold text-lg">
+                    <span id="level-badge">LEVEL 1</span>
+                </div>
+                <!-- Judul Game: Diperbesar dari text-2xl ke text-5xl -->
+                <div class="bg-black/40 px-8 py-3 rounded-full border-4 border-white text-yellow-400 font-extrabold text-5xl tracking-wider yt-shadow transform scale-110">
+                    TEBAK BENDERA
+                </div>
+                <div class="bg-black/40 px-4 py-2 rounded-full border-2 border-white text-white font-bold text-lg">
+                    <span id="progress">1/100</span>
+                </div>
+            </div>
+
+            <!-- Content Area (Flag + Timer Side-by-Side) -->
+            <div class="flex-grow flex flex-col items-center justify-center mb-2">
+                <h2 class="text-3xl font-bold text-white mb-4 yt-shadow">Negara manakah ini?</h2>
+                
+                <div class="flex flex-row items-center justify-center gap-8"> <!-- Flex Row untuk Sejajar -->
+                    
+                    <!-- TIMER (Kiri) -->
+                    <div id="timer-text" class="timer-circle">
+                        5
+                    </div>
+
+                    <!-- BENDERA (Kanan) -->
+                    <div class="flag-container">
+                        <img id="flag-img" src="" alt="Bendera" class="flag-img">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multiple Choice Buttons -->
+            <div id="options-area" class="options-grid">
+                <button class="option-btn btn-a" onclick="game.checkAnswer(0)"></button>
+                <button class="option-btn btn-b" onclick="game.checkAnswer(1)"></button>
+                <button class="option-btn btn-c" onclick="game.checkAnswer(2)"></button>
+                <button class="option-btn btn-d" onclick="game.checkAnswer(3)"></button>
+            </div>
+
+            <!-- Feedback Overlay -->
+            <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center bg-black/60 hidden z-30 backdrop-blur-sm">
+                <h1 id="feedback-text" class="text-6xl font-extrabold text-white yt-shadow animate-bounce">BENAR!</h1>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-10 shadow-2xl border-4 border-white text-center w-full aspect-video flex flex-col items-center justify-center">
+            <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-yellow-400 animate-pulse">
+                <i class="fas fa-flag text-6xl text-blue-500"></i>
+            </div>
+            <h2 class="text-4xl font-extrabold text-white yt-shadow mb-4">SIAP MENJAWAB?</h2>
+            <p class="text-white text-xl font-semibold mb-8 max-w-lg">
+                Tantangan 100 Negara!<br>
+                Waktu hanya <strong>5 DETIK</strong> per soal!
+            </p>
+            <button onclick="game.start()" class="px-10 py-4 bg-yellow-400 hover:bg-yellow-300 text-black text-2xl font-extrabold rounded-full shadow-[0_6px_0_rgb(180,130,0)] active:shadow-none active:translate-y-2 transition-all border-2 border-white">
+                MULAI SEKARANG! 🚀
+            </button>
+        </div>
+
+        <!-- Result Modal -->
+        <div id="result-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-md">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center border-8 border-blue-500 shadow-2xl transform scale-110">
+                <div id="result-icon" class="text-8xl mb-4">🏆</div>
+                <h2 id="result-title" class="text-4xl font-extrabold mb-2 text-slate-800">LUAR BIASA!</h2>
+                <p id="result-msg" class="text-slate-600 font-bold text-xl mb-8">Skor Kamu: 100</p>
+                <button onclick="game.restart()" class="w-full py-4 bg-green-500 hover:bg-green-400 text-white rounded-2xl font-bold text-xl shadow-[0_6px_0_rgb(20,120,50)] active:shadow-none active:translate-y-2 transition-all">Main Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA 100 NEGARA & KODE BENDERA (ISO 2) ---
+        const LEVEL_1 = [
+            {name: "INDONESIA", code: "id"}, {name: "MALAYSIA", code: "my"}, {name: "SINGAPURA", code: "sg"},
+            {name: "THAILAND", code: "th"}, {name: "VIETNAM", code: "vn"}, {name: "FILIPINA", code: "ph"},
+            {name: "BRUNEI", code: "bn"}, {name: "LAOS", code: "la"}, {name: "MYANMAR", code: "mm"},
+            {name: "KAMBOJA", code: "kh"}, {name: "TIMOR LESTE", code: "tl"}, {name: "JEPANG", code: "jp"},
+            {name: "KOREA SELATAN", code: "kr"}, {name: "CHINA", code: "cn"}, {name: "INDIA", code: "in"},
+            {name: "ARAB SAUDI", code: "sa"}, {name: "PALESTINA", code: "ps"}, {name: "TURKI", code: "tr"},
+            {name: "AMERIKA SERIKAT", code: "us"}, {name: "INGGRIS", code: "gb"}, {name: "AUSTRALIA", code: "au"},
+            {name: "BELANDA", code: "nl"}, {name: "JERMAN", code: "de"}, {name: "PRANCIS", code: "fr"},
+            {name: "ITALIA", code: "it"}, {name: "SPANYOL", code: "es"}, {name: "PORTUGAL", code: "pt"},
+            {name: "RUSIA", code: "ru"}, {name: "BRASIL", code: "br"}, {name: "ARGENTINA", code: "ar"},
+            {name: "MESIR", code: "eg"}, {name: "KANADA", code: "ca"}, {name: "MEKSIKO", code: "mx"}
+        ];
+
+        const LEVEL_2 = [
+            {name: "SWISS", code: "ch"}, {name: "BELGIA", code: "be"}, {name: "SWEDIA", code: "se"},
+            {name: "NORWEGIA", code: "no"}, {name: "DENMARK", code: "dk"}, {name: "FINLANDIA", code: "fi"},
+            {name: "POLANDIA", code: "pl"}, {name: "UKRAINA", code: "ua"}, {name: "YUNANI", code: "gr"},
+            {name: "IRAK", code: "iq"}, {name: "IRAN", code: "ir"}, {name: "QATAR", code: "qa"},
+            {name: "UEA", code: "ae"}, {name: "KUWAIT", code: "kw"}, {name: "YAMAN", code: "ye"},
+            {name: "SURIAH", code: "sy"}, {name: "MAROKO", code: "ma"}, {name: "AFRIKA SELATAN", code: "za"},
+            {name: "NIGERIA", code: "ng"}, {name: "KAMERUN", code: "cm"}, {name: "PANTAI GADING", code: "ci"},
+            {name: "SENEGAL", code: "sn"}, {name: "KOLOMBIA", code: "co"}, {name: "CHILE", code: "cl"},
+            {name: "PERU", code: "pe"}, {name: "URUGUAY", code: "uy"}, {name: "PARAGUAY", code: "py"},
+            {name: "SELANDIA BARU", code: "nz"}, {name: "KOREA UTARA", code: "kp"}, {name: "HONG KONG", code: "hk"},
+            {name: "TAIWAN", code: "tw"}, {name: "PAKISTAN", code: "pk"}, {name: "BANGLADESH", code: "bd"}
+        ];
+
+        const LEVEL_3 = [
+            {name: "SRI LANKA", code: "lk"}, {name: "NEPAL", code: "np"}, {name: "MALADEWA", code: "mv"},
+            {name: "AFGANISTAN", code: "af"}, {name: "UZBEKISTAN", code: "uz"}, {name: "KAZAKSTAN", code: "kz"},
+            {name: "AUSTRIA", code: "at"}, {name: "HUNGARIA", code: "hu"}, {name: "CEKO", code: "cz"},
+            {name: "KROASIA", code: "hr"}, {name: "SERBIA", code: "rs"}, {name: "ROMANIA", code: "ro"},
+            {name: "BULGARIA", code: "bg"}, {name: "ISLANDIA", code: "is"}, {name: "IRLANDIA", code: "ie"},
+            {name: "SKOTLANDIA", code: "gb-sct"}, {name: "WALES", code: "gb-wls"}, {name: "TUNISIA", code: "tn"},
+            {name: "ALJAZAIR", code: "dz"}, {name: "GHANA", code: "gh"}, {name: "KENYA", code: "ke"},
+            {name: "ETHIOPIA", code: "et"}, {name: "TANZANIA", code: "tz"}, {name: "UGANDA", code: "ug"},
+            {name: "ZIMBABWE", code: "zw"}, {name: "EKUADOR", code: "ec"}, {name: "BOLIVIA", code: "bo"},
+            {name: "VENEZUELA", code: "ve"}, {name: "KUBA", code: "cu"}, {name: "JAMAIKA", code: "jm"},
+            {name: "PANAMA", code: "pa"}, {name: "KOSTA RIKA", code: "cr"}, {name: "FIJI", code: "fj"},
+            {name: "PAPUA NUGINI", code: "pg"}
+        ];
+
+        const ALL_DATA = [...LEVEL_1, ...LEVEL_2, ...LEVEL_3];
+
+        const BG_COLORS = [
+            "linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%)",
+            "linear-gradient(135deg, #FC466B 0%, #3F5EFB 100%)",
+            "linear-gradient(135deg, #e1eec3 0%, #f05053 100%)",
+            "linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)",
+            "linear-gradient(135deg, #FDBB2D 0%, #22C1C3 100%)",
+            "linear-gradient(135deg, #FF3CAC 0%, #784BA0 50%, #2B86C5 100%)"
+        ];
+
+        const bgMusic = document.getElementById('bg-music');
+        let isMusicOn = false;
+
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.2;
+                bgMusic.play().then(() => {
+                    isMusicOn = true;
+                    document.getElementById('toggle-music').innerHTML = '<i class="fas fa-volume-up"></i>';
+                }).catch(e => console.log(e));
+            } else {
+                bgMusic.pause();
+                isMusicOn = false;
+                document.getElementById('toggle-music').innerHTML = '<i class="fas fa-volume-mute"></i>';
+            }
+        }
+
+        class Game {
+            constructor() {
+                this.score = 0;
+                this.qIndex = 0;
+                this.questions = [];
+                this.currentQ = null;
+                this.timerId = null; 
+                this.canAnswer = false;
+
+                this.elStart = document.getElementById('start-screen');
+                this.elGame = document.getElementById('game-card');
+                this.elResult = document.getElementById('result-modal');
+                this.elFlag = document.getElementById('flag-img');
+                
+                // Elemen Timer Baru
+                this.elTimerText = document.getElementById('timer-text');
+                
+                this.elFeedback = document.getElementById('feedback-overlay');
+                this.elFeedbackText = document.getElementById('feedback-text');
+                
+                this.uiProgress = document.getElementById('progress');
+                this.uiLevel = document.getElementById('level-badge');
+                this.btns = document.querySelectorAll('.option-btn');
+            }
+
+            start() {
+                toggleMusic();
+
+                this.score = 0;
+                this.qIndex = 0;
+                
+                this.questions = [
+                    ...this.shuffle(LEVEL_1),
+                    ...this.shuffle(LEVEL_2),
+                    ...this.shuffle(LEVEL_3)
+                ];
+
+                this.elStart.classList.add('hidden');
+                this.elResult.classList.add('hidden');
+                this.elGame.classList.remove('hidden');
+                
+                this.nextRound();
+            }
+
+            restart() {
+                this.start();
+            }
+
+            shuffle(array) {
+                return array.sort(() => Math.random() - 0.5);
+            }
+
+            nextRound() {
+                if (this.qIndex >= this.questions.length) {
+                    this.endGame();
+                    return;
+                }
+
+                this.currentQ = this.questions[this.qIndex];
+                this.qIndex++;
+
+                this.uiProgress.innerText = `${this.qIndex}/${this.questions.length}`;
+                
+                // Update Level Badge
+                if (this.qIndex <= 33) {
+                    this.uiLevel.innerText = "LEVEL 1";
+                    this.uiLevel.parentElement.className = "bg-green-600/80 px-4 py-2 rounded-full border-2 border-white text-white font-bold text-lg";
+                } else if (this.qIndex <= 66) {
+                    this.uiLevel.innerText = "LEVEL 2";
+                    this.uiLevel.parentElement.className = "bg-yellow-600/80 px-4 py-2 rounded-full border-2 border-white text-white font-bold text-lg";
+                } else {
+                    this.uiLevel.innerText = "LEVEL 3";
+                    this.uiLevel.parentElement.className = "bg-red-600/80 px-4 py-2 rounded-full border-2 border-white text-white font-bold text-lg";
+                }
+
+                const bg = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
+                this.elGame.style.background = bg;
+
+                this.elFlag.src = `https://flagcdn.com/w320/${this.currentQ.code}.png`;
+
+                this.generateOptions();
+
+                this.canAnswer = true;
+                this.elFeedback.classList.add('hidden');
+                this.resetButtons();
+
+                // Timer 5 Detik
+                this.startTimer(5);
+            }
+
+            generateOptions() {
+                let options = [this.currentQ];
+                
+                while (options.length < 4) {
+                    const random = ALL_DATA[Math.floor(Math.random() * ALL_DATA.length)];
+                    if (!options.find(o => o.name === random.name)) {
+                        options.push(random);
+                    }
+                }
+
+                options = this.shuffle(options);
+
+                this.btns.forEach((btn, i) => {
+                    btn.innerText = options[i].name;
+                    btn.dataset.correct = (options[i].name === this.currentQ.name);
+                });
+            }
+
+            resetButtons() {
+                this.btns.forEach(btn => {
+                    btn.classList.remove('correct', 'wrong');
+                    btn.disabled = false;
+                });
+            }
+
+            checkAnswer(btnIndex) {
+                if (!this.canAnswer) return;
+                this.stopTimer();
+
+                const btn = this.btns[btnIndex];
+                const isCorrect = (btn.dataset.correct === 'true');
+
+                if (isCorrect) {
+                    btn.classList.add('correct');
+                    this.score += 10;
+                    this.showFeedback("BENAR!", true);
+                    this.speak(this.currentQ.name);
+                } else {
+                    btn.classList.add('wrong');
+                    this.btns.forEach(b => {
+                        if (b.dataset.correct === 'true') b.classList.add('correct');
+                    });
+                    this.showFeedback("SALAH!", false);
+                    this.speak(this.currentQ.name);
+                }
+
+                setTimeout(() => this.nextRound(), 2000); 
+            }
+
+            showFeedback(msg, isSuccess) {
+                this.elFeedbackText.innerText = msg;
+                this.elFeedbackText.style.color = isSuccess ? '#4ade80' : '#f87171';
+                this.elFeedback.classList.remove('hidden');
+            }
+
+            // --- FUNGSI TIMER SEDERHANA (Hitungan Mundur Detik) ---
+            startTimer(seconds) {
+                clearInterval(this.timerId);
+                let timeLeft = seconds;
+                
+                // Update tampilan awal
+                this.elTimerText.innerText = timeLeft;
+                
+                this.timerId = setInterval(() => {
+                    timeLeft--;
+                    this.elTimerText.innerText = timeLeft;
+
+                    if (timeLeft < 0) {
+                        this.elTimerText.innerText = "0";
+                        clearInterval(this.timerId);
+                        this.timeIsUp();
+                    }
+                }, 1000); // Update setiap 1 detik
+            }
+
+            stopTimer() {
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.timerId = null;
+                }
+                this.canAnswer = false;
+            }
+
+            timeIsUp() {
+                this.stopTimer();
+                
+                this.btns.forEach(b => {
+                    if (b.dataset.correct === 'true') b.classList.add('correct');
+                });
+                
+                this.speak(this.currentQ.name);
+                setTimeout(() => this.nextRound(), 2500);
+            }
+
+            speak(text) {
+                if ('speechSynthesis' in window) {
+                    const utter = new SpeechSynthesisUtterance(text);
+                    utter.lang = 'id-ID';
+                    window.speechSynthesis.speak(utter);
+                }
+            }
+
+            endGame() {
+                this.elGame.classList.add('hidden');
+                this.elResult.classList.remove('hidden');
+                
+                const msg = document.getElementById('result-msg');
+                msg.innerText = `Skor Akhir: ${this.score} / 1000`;
+            }
+        }
+
+        const game = new Game();
+    </script>
+</body>
+</html>
