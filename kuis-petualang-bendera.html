@@ -13,8 +13,7 @@
             background-image: radial-gradient(#4DD0E1 1px, transparent 1px);
             background-size: 20px 20px;
             user-select: none;
-            margin: 0; /* Hapus margin body */
-            overflow: hidden; /* Hilangkan scrollbar */
+            overflow: hidden; 
         }
 
         /* Animasi Kemenangan */
@@ -50,18 +49,13 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col bg-white">
+<body class="h-screen w-screen flex items-center justify-center p-4">
 
-    <!-- Container Utama (FULL SCREEN - Menghapus max-w dan border) -->
-    <div class="w-full h-full bg-white relative flex flex-col">
+    <!-- Container Utama (16:9 Card) -->
+    <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-white relative flex flex-col" style="aspect-ratio: 16/9; max-height: 90vh;">
         
         <!-- Hiasan Header -->
         <div class="bg-yellow-400 h-4 w-full absolute top-0 left-0 z-0"></div>
-
-        <!-- Tombol Toggle Fullscreen (Pojok Kanan Atas) -->
-        <button onclick="toggleFullScreen()" class="absolute top-6 right-6 z-50 bg-white/90 hover:bg-blue-50 p-3 rounded-xl shadow-md text-2xl transition-all border-2 border-gray-200 text-gray-600" title="Layar Penuh">
-            ⛶
-        </button>
 
         <!-- LAYAR MENU UTAMA -->
         <div id="start-screen" class="absolute inset-0 bg-white z-20 flex flex-col items-center justify-center p-8 text-center">
@@ -88,7 +82,6 @@
 
                 <!-- Timer Bar Raksasa -->
                 <div class="relative w-full">
-                    <!-- Tinggi diperbesar menjadi h-16 agar lebih jelas di layar penuh -->
                     <div class="w-full bg-gray-200 rounded-2xl h-16 overflow-hidden border-4 border-gray-100 shadow-inner">
                         <div id="timer-bar" class="bg-orange-500 h-full rounded-xl transition-all duration-100 ease-linear flex items-center justify-end pr-6" style="width: 100%;">
                             <span class="text-white/30 font-bold text-3xl">⏳</span>
@@ -142,19 +135,6 @@
     </div>
 
     <script>
-        // --- FITUR LAYAR PENUH (FULL SCREEN) ---
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
         // --- DATA NEGARA (50 Negara) ---
         const countries = [
             // Asia Tenggara
@@ -240,10 +220,6 @@
             }
 
             toggleMusic(true); 
-            
-            // Otomatis masuk fullscreen saat mulai (opsional, tapi bagus untuk UX)
-            // document.documentElement.requestFullscreen().catch(() => {});
-            
             startGame();
         }
 
