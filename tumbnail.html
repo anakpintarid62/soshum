@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thumbnail Kuis Petualang Bendera</title>
+    <title>Thumbnail Kuis Mata Uang</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -14,7 +14,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #333;
+            background-color: #222;
             font-family: 'Fredoka', sans-serif;
         }
 
@@ -23,7 +23,8 @@
             width: 1280px;
             height: 720px;
             position: relative;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            /* Gradient Hijau Segar ke Emas */
+            background: linear-gradient(135deg, #43a047 0%, #8bc34a 50%, #fdd835 100%);
             overflow: hidden;
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
             display: flex;
@@ -32,7 +33,7 @@
             justify-content: center;
         }
 
-        /* Pattern Latar Belakang */
+        /* Pattern Latar Belakang (Simbol Uang Halus) */
         .bg-pattern {
             position: absolute;
             top: 0;
@@ -46,37 +47,37 @@
 
         /* Efek Teks Judul 3D */
         .title-text {
-            font-size: 130px;
+            font-size: 140px;
             font-weight: 900;
             color: #FFD700; /* Emas */
             text-transform: uppercase;
-            line-height: 1;
+            line-height: 0.9;
             text-align: center;
             z-index: 10;
-            /* Stroke Tebal */
-            -webkit-text-stroke: 6px #2563EB; 
-            /* Shadow Tumpuk untuk efek 3D kartun */
+            /* Stroke Tebal Hijau Gelap */
+            -webkit-text-stroke: 6px #1B5E20; 
+            /* Shadow Tumpuk */
             text-shadow: 
-                8px 8px 0px #2563EB,
+                8px 8px 0px #1B5E20,
                 16px 16px 0px rgba(0,0,0,0.2);
             transform: rotate(-3deg);
             margin-bottom: 20px;
         }
 
         .subtitle-text {
-            font-size: 70px;
+            font-size: 65px;
             font-weight: 700;
             color: #fff;
-            background-color: #FF4081; /* Pink */
-            padding: 10px 40px;
-            border-radius: 50px;
+            background-color: #FF6F00; /* Oranye Tembaga */
+            padding: 15px 50px;
+            border-radius: 60px;
             border: 6px solid #fff;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             z-index: 10;
             transform: rotate(2deg);
         }
 
-        /* Elemen Dekorasi */
+        /* Lingkaran Dekorasi */
         .decoration-circle {
             position: absolute;
             border-radius: 50%;
@@ -84,51 +85,58 @@
             z-index: 2;
         }
 
-        /* Bendera Melayang */
-        .floating-flag {
+        /* Simbol Mata Uang Melayang (Coin Style) */
+        .floating-coin {
             position: absolute;
-            border-radius: 15px;
-            border: 6px solid white;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #FFEB3B, #FBC02D);
+            border: 8px solid #FFF176;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            font-weight: 900;
+            color: #E65100;
             box-shadow: 0 15px 30px rgba(0,0,0,0.3);
             z-index: 5;
-            object-fit: cover;
+            text-shadow: 2px 2px 0 rgba(255,255,255,0.5);
         }
 
-        /* Posisi Bendera */
-        .flag-1 { top: 80px; left: 80px; width: 220px; transform: rotate(-15deg); }
-        .flag-2 { top: 60px; right: 100px; width: 200px; transform: rotate(15deg); }
-        .flag-3 { bottom: 80px; left: 120px; width: 180px; transform: rotate(10deg); }
-        .flag-4 { bottom: 100px; right: 80px; width: 240px; transform: rotate(-10deg); }
+        /* Posisi Koin */
+        .coin-1 { top: 60px; left: 60px; transform: rotate(-15deg); }
+        .coin-2 { top: 40px; right: 80px; transform: rotate(15deg) scale(1.1); background: radial-gradient(circle at 30% 30%, #81C784, #388E3C); color: #1B5E20; border-color: #A5D6A7; } /* Koin Dollar Hijau */
+        .coin-3 { bottom: 60px; left: 100px; transform: rotate(10deg) scale(0.9); }
+        .coin-4 { bottom: 80px; right: 60px; transform: rotate(-10deg); }
 
-        /* Karakter/Emoji Besar */
-        .emoji-mascot {
-            position: absolute;
-            font-size: 200px;
-            z-index: 4;
-            bottom: -20px;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
-            animation: bounce 3s infinite ease-in-out;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
+        /* Badge 50 Soal */
         .badge-50 {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: #F59E0B;
+            background: #D32F2F; /* Merah Menyala */
             color: white;
             font-weight: 900;
             font-size: 40px;
             padding: 20px 30px;
             border-radius: 20px;
             border: 5px solid white;
-            box-shadow: 0 10px 0 #B45309;
+            box-shadow: 0 10px 0 #8c1b1b;
             z-index: 20;
             transform: rotate(5deg);
+        }
+
+        /* Mascot Emoji */
+        .emoji-money {
+            position: absolute;
+            font-size: 150px;
+            bottom: 20px;
+            z-index: 4;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.3; /* Samar di belakang teks */
         }
 
     </style>
@@ -140,17 +148,17 @@
         <div class="bg-pattern"></div>
         
         <!-- Lingkaran Dekorasi -->
-        <div class="decoration-circle" style="width: 500px; height: 500px; top: -100px; left: -100px;"></div>
-        <div class="decoration-circle" style="width: 400px; height: 400px; bottom: -50px; right: -50px;"></div>
+        <div class="decoration-circle" style="width: 550px; height: 550px; top: -150px; left: -150px;"></div>
+        <div class="decoration-circle" style="width: 450px; height: 450px; bottom: -100px; right: -100px;"></div>
 
-        <!-- Bendera Hiasan -->
-        <img src="https://flagcdn.com/w640/id.png" class="floating-flag flag-1" alt="Indonesia">
-        <img src="https://flagcdn.com/w640/jp.png" class="floating-flag flag-2" alt="Jepang">
-        <img src="https://flagcdn.com/w640/gb.png" class="floating-flag flag-3" alt="Inggris">
-        <img src="https://flagcdn.com/w640/br.png" class="floating-flag flag-4" alt="Brasil">
+        <!-- Simbol Mata Uang Melayang -->
+        <div class="floating-coin coin-1">¥</div>
+        <div class="floating-coin coin-2">$</div>
+        <div class="floating-coin coin-3">€</div>
+        <div class="floating-coin coin-4">Rp</div>
 
         <!-- Teks Utama -->
-        <div class="title-text">KUIS<br>BENDERA</div>
+        <div class="title-text">KUIS<br>MATA UANG</div>
         
         <!-- Sub Judul -->
         <div class="subtitle-text">Tebak Negaranya!</div>
@@ -158,8 +166,8 @@
         <!-- Badge -->
         <div class="badge-50">50 SOAL</div>
 
-        <!-- Emoji Maskot -->
-        <!-- <div class="emoji-mascot">🌍</div> -->
+        <!-- Emoji Dekorasi Tengah (Opsional) -->
+        <!-- <div class="emoji-money">💰</div> -->
     </div>
 
 </body>
