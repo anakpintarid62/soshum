@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thumbnail Tebak Hewan Air</title>
+    <title>Thumbnail Tebak Buah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -24,8 +24,8 @@
             height: 720px;
             position: relative;
             overflow: hidden;
-            /* Background Laut Segar */
-            background: linear-gradient(180deg, #4FC3F7 0%, #0288D1 100%);
+            /* Background Gradasi Segar */
+            background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
@@ -33,31 +33,24 @@
             justify-content: center;
         }
 
-        /* Pattern Gelombang di Background */
-        .wave-bg {
+        /* Pattern Lingkaran di Background */
+        .circle-bg {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image: repeating-linear-gradient(
-                45deg,
-                rgba(255, 255, 255, 0.1),
-                rgba(255, 255, 255, 0.1) 20px,
-                transparent 20px,
-                transparent 40px
-            );
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
             z-index: 1;
         }
 
         /* Teks Judul dengan Stroke Tebal */
         .title-text {
-            font-size: 140px;
-            line-height: 0.9;
-            color: #FFEB3B; /* Kuning Cerah */
-            -webkit-text-stroke: 8px #01579B; /* Biru Tua */
+            font-size: 150px;
+            line-height: 0.85;
+            color: #FF5252; /* Merah Buah */
+            -webkit-text-stroke: 8px #FFFFFF;
             text-shadow: 
-                8px 8px 0px #0288D1, 
-                15px 15px 0px rgba(0,0,0,0.2);
-            transform: rotate(-2deg);
+                8px 8px 0px #FF9800, 
+                16px 16px 0px rgba(0,0,0,0.15);
+            transform: rotate(-3deg);
             z-index: 20;
             text-align: center;
             position: relative;
@@ -65,16 +58,16 @@
 
         /* Sub-judul Badge */
         .subtitle-badge {
-            background: #FF5722; /* Oranye */
+            background: #FF9800; /* Oranye */
             color: white;
-            padding: 15px 50px;
+            padding: 12px 45px;
             font-size: 45px;
             border-radius: 50px;
-            border: 6px solid white;
-            box-shadow: 0 10px 0 rgba(0,0,0,0.2);
+            border: 6px solid #FFF;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.1);
             transform: rotate(2deg);
             z-index: 20;
-            margin-top: 10px;
+            margin-top: 20px;
         }
 
         /* Badge Jumlah Soal */
@@ -83,7 +76,7 @@
             top: 40px;
             right: 40px;
             background: #FFFFFF;
-            color: #0288D1;
+            color: #4CAF50;
             width: 240px;
             height: 240px;
             border-radius: 50%;
@@ -91,91 +84,90 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 10px solid #4FC3F7;
+            border: 12px solid #8BC34A;
             box-shadow: 0 15px 0 rgba(0,0,0,0.2);
             transform: rotate(10deg);
             z-index: 30;
         }
 
-        /* Hewan-hewan Pop-up */
-        .animal {
+        /* Buah-buahan Pop-up */
+        .fruit {
             position: absolute;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
             z-index: 10;
-            animation: float 6s ease-in-out infinite;
+            animation: bounce 3s ease-in-out infinite;
         }
 
-        .animal.left {
-            bottom: -30px;
-            left: -30px;
+        .fruit.left {
+            bottom: -20px;
+            left: -20px;
             transform: rotate(15deg);
-            font-size: 260px;
+            font-size: 280px;
             animation-delay: 0s;
         }
 
-        .animal.right {
-            bottom: 20px;
+        .fruit.right {
+            bottom: -10px;
             right: 10px;
             transform: rotate(-15deg);
-            font-size: 240px;
-            animation-delay: 2s;
+            font-size: 250px;
+            animation-delay: 1.5s;
         }
 
-        .animal.top-left {
-            top: 20px;
-            left: 30px;
+        .fruit.top-left {
+            top: 30px;
+            left: 40px;
             font-size: 180px;
             transform: rotate(-20deg);
-            animation-delay: 1s;
+            animation-delay: 0.5s;
         }
 
-        /* Gelembung Dekorasi */
-        .bubble {
+        /* Dekorasi Daun */
+        .leaf {
             position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            border: 2px solid rgba(255, 255, 255, 0.6);
+            font-size: 100px;
+            color: #4CAF50;
             z-index: 5;
+            opacity: 0.8;
         }
 
-        @keyframes float {
+        @keyframes bounce {
             0%, 100% { transform: translateY(0) rotate(var(--rot)); }
-            50% { transform: translateY(-20px) rotate(var(--rot)); }
+            50% { transform: translateY(-15px) rotate(var(--rot)); }
         }
     </style>
 </head>
 <body>
 
     <div id="thumbnail">
-        <div class="wave-bg"></div>
-
-        <!-- Gelembung -->
-        <div class="bubble" style="width: 80px; height: 80px; top: 100px; left: 200px;"></div>
-        <div class="bubble" style="width: 50px; height: 50px; bottom: 150px; right: 300px;"></div>
-        <div class="bubble" style="width: 100px; height: 100px; top: 50px; right: 400px;"></div>
+        <!-- Background Patterns -->
+        <div class="circle-bg" style="width: 600px; height: 600px; top: -100px; left: -100px;"></div>
+        <div class="circle-bg" style="width: 400px; height: 400px; bottom: -50px; right: -50px;"></div>
+        <div class="leaf" style="top: 20%; left: 20%; transform: rotate(45deg);">🍃</div>
+        <div class="leaf" style="bottom: 30%; right: 25%; transform: rotate(-30deg);">🌿</div>
 
         <!-- Badge Jumlah Soal -->
         <div class="count-badge">
             <span class="text-8xl font-black" style="line-height: 1;">40</span>
-            <span class="text-3xl font-bold uppercase">Hewan</span>
+            <span class="text-3xl font-bold uppercase">Soal</span>
         </div>
 
-        <!-- Hewan Penghias -->
-        <div class="animal top-left" style="--rot: -20deg">🐠</div>
-        <div class="animal left" style="--rot: 15deg">🐙</div>
-        <div class="animal right" style="--rot: -15deg">🐳</div>
+        <!-- Buah Penghias -->
+        <div class="fruit top-left" style="--rot: -20deg">🍇</div>
+        <div class="fruit left" style="--rot: 15deg">🍎</div>
+        <div class="fruit right" style="--rot: -15deg">🍌</div>
 
         <!-- Judul Utama -->
-        <div class="flex flex-col items-center z-20 mt-8">
+        <div class="flex flex-col items-center z-20 mt-4">
             <h1 class="title-text font-black">
                 TEBAK<br>
-                <span style="color: #FFFFFF; -webkit-text-stroke: 8px #0277BD; text-shadow: 8px 8px 0px #01579B;">HEWAN AIR</span>
+                <span style="color: #FFEB3B; -webkit-text-stroke: 8px #F57C00; text-shadow: 8px 8px 0px #E65100;">BUAH</span>
             </h1>
         </div>
 
         <!-- Sub-judul -->
         <div class="subtitle-badge font-bold">
-            EDISI DUNIA LAUT 🌊
+            EDISI SEGAR & SEHAT 🥗
         </div>
 
     </div>
