@@ -16,12 +16,9 @@
     <style>
         body {
             font-family: 'Fredoka', sans-serif;
-            /* Background Lautan */
-            background-color: #00a8ff;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 15%),
-                linear-gradient(180deg, #00a8ff 0%, #0097e6 100%);
+            /* Background Laut Biru */
+            background-color: #00b4db;
+            background-image: linear-gradient(to top, #0083b0, #00b4db);
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -37,30 +34,31 @@
             width: 90vw;
             max-width: 1280px;
             max-height: 90vh;
-            background: #e0f7fa; /* Warna biru muda air */
+            background: #E0F7FA; /* Warna biru muda sekali */
             border-radius: 40px;
-            box-shadow: 0 20px 0 #0097e6, 0 30px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 0 #0288D1, 0 30px 40px rgba(0,0,0,0.3); /* Efek 3D biru */
             border: 8px solid #FFF;
             position: relative;
             overflow: hidden;
         }
 
-        /* Dekorasi Gelembung Bergerak */
+        /* Dekorasi Gelembung (Bubbles) - Pengganti Awan */
         .bubble {
             position: absolute;
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            animation: floatBubble 10s linear infinite;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            animation: floatBubble 15s linear infinite;
             z-index: 0;
-            border: 2px solid rgba(255, 255, 255, 0.6);
+            bottom: -50px;
         }
         @keyframes floatBubble {
-            from { transform: translateY(100vh) scale(0.5); opacity: 0; }
-            50% { opacity: 1; }
-            to { transform: translateY(-20vh) scale(1.2); opacity: 0; }
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
         }
 
-        /* Tombol Jawaban "Jelly" */
+        /* Tombol Jawaban "Jelly" - Nuansa Biru/Laut */
         .btn-option {
             font-family: 'Nunito', sans-serif;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -105,7 +103,7 @@
         .timer-container {
             width: 100%;
             height: 24px;
-            background: #b2ebf2;
+            background: #e0e0e0;
             border-radius: 12px;
             overflow: hidden;
             margin-bottom: 20px;
@@ -115,7 +113,7 @@
         
         .timer-bar {
             height: 100%;
-            background: linear-gradient(90deg, #00cec9, #81ecec);
+            background: linear-gradient(90deg, #00b894, #fdcb6e, #ff7675);
             background-size: 200% 100%;
             width: 100%;
             transform-origin: left;
@@ -128,22 +126,29 @@
             background-size: 40px 40px;
             opacity: 0.2;
         }
+        
+        /* Ikon Gelombang Laut di Background Konten Kiri */
+        .wave-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.184 20c.357-.13.72-.264 1.088-.402l1.768-.661C33.64 15.347 39.647 14 50 14c10.271 0 15.362 1.222 24.629 4.928.955.374 1.869.74 2.75 1.072h6.225c-2.51-.73-5.139-1.691-8.233-2.928C65.888 13.278 60.562 12 50 12c-10.626 0-16.855 1.397-26.66 5.063l-1.767.662c-2.475.923-4.66 1.674-6.724 2.275h6.335zm0-20C13.258 2.892 8.077 4 0 4V2c5.744 0 9.951-.574 14.85-2h6.334zM77.38 0C85.239 2.966 90.502 4 100 4V2c-6.842 0-11.386-.542-16.396-2h-6.225zM0 14c8.44 0 13.718-1.21 22.272-4.402l1.768-.661C33.64 5.347 39.647 4 50 4c10.271 0 15.362 1.222 24.629 4.928C84.112 12.722 89.438 14 100 14v-2c-10.271 0-15.362-1.222-24.629-4.928C65.888 3.278 60.562 2 50 2 39.374 2 33.145 3.397 23.34 7.063l-1.767.662C13.223 10.84 8.163 12 0 12v2z' fill='%234fc3f7' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
     </style>
 </head>
 <body>
 
-    <!-- Gelembung Dekorasi -->
-    <div class="bubble" style="width: 60px; height: 60px; left: 10%; animation-duration: 8s;"></div>
-    <div class="bubble" style="width: 40px; height: 40px; left: 30%; animation-duration: 12s; animation-delay: 2s;"></div>
-    <div class="bubble" style="width: 80px; height: 80px; left: 70%; animation-duration: 15s; animation-delay: 1s;"></div>
-    <div class="bubble" style="width: 30px; height: 30px; left: 90%; animation-duration: 9s; animation-delay: 4s;"></div>
+    <!-- Gelembung Dekorasi (Bubbles) -->
+    <div class="bubble" style="width: 60px; height: 60px; left: 10%; animation-duration: 8s; animation-delay: 0s;"></div>
+    <div class="bubble" style="width: 40px; height: 40px; left: 25%; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="bubble" style="width: 80px; height: 80px; left: 40%; animation-duration: 10s; animation-delay: 4s;"></div>
+    <div class="bubble" style="width: 50px; height: 50px; left: 70%; animation-duration: 14s; animation-delay: 1s;"></div>
+    <div class="bubble" style="width: 70px; height: 70px; left: 85%; animation-duration: 9s; animation-delay: 3s;"></div>
+    <div class="bubble" style="width: 30px; height: 30px; left: 55%; animation-duration: 11s; animation-delay: 5s;"></div>
 
     <div id="app-container" class="flex flex-col p-6 z-10">
         
         <!-- TRANSISI LAYER -->
-        <div id="transition-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0984e3] transition-transform duration-500 translate-x-full shadow-2xl rounded-[32px]">
+        <div id="transition-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#00BCD4] transition-transform duration-500 translate-x-full shadow-2xl rounded-[32px]">
             <div class="pattern-bg absolute inset-0"></div>
-            <div id="transition-emoji" class="text-9xl animate-bounce mb-6 drop-shadow-lg z-10">🌊</div>
+            <div id="transition-emoji" class="text-9xl animate-bounce mb-6 drop-shadow-lg z-10">🚤</div>
             <h2 id="transition-text" class="text-6xl font-black text-white tracking-wider drop-shadow-md z-10 border-4 border-white/20 px-8 py-4 rounded-full bg-white/10 backdrop-blur-sm text-center">
                 SIAP-SIAP...
             </h2>
@@ -152,28 +157,28 @@
         <!-- Halaman Utama (Intro) -->
         <div id="start-screen" class="h-full flex flex-col items-center justify-center space-y-6 animate-fade-in z-20">
             <div class="flex items-center space-x-6">
-                <div class="emoji-animate text-8xl drop-shadow-lg">🐋</div>
-                <div class="emoji-animate text-8xl drop-shadow-lg" style="animation-delay: 0.2s">🐙</div>
-                <div class="emoji-animate text-8xl drop-shadow-lg" style="animation-delay: 0.4s">🦀</div>
+                <div class="emoji-animate text-8xl drop-shadow-lg">🐳</div>
+                <div class="emoji-animate text-8xl drop-shadow-lg" style="animation-delay: 0.2s">🦀</div>
+                <div class="emoji-animate text-8xl drop-shadow-lg" style="animation-delay: 0.4s">🐠</div>
             </div>
             
             <div class="text-center space-y-4 bg-white/50 p-6 rounded-[30px] backdrop-blur-sm border-4 border-white">
-                <h1 class="text-6xl font-black text-[#0984e3] tracking-wide" style="text-shadow: 3px 3px 0 #FFF;">
+                <h1 class="text-6xl font-black text-[#0288D1] tracking-wide" style="text-shadow: 3px 3px 0 #FFF;">
                     Tebak Hewan Air!
                 </h1>
-                <p class="text-2xl text-[#00b894] font-bold">35 Hewan Laut & Sungai Menunggu!</p>
+                <p class="text-2xl text-[#00BCD4] font-bold">40 Teman Bawah Laut!</p>
             </div>
 
-            <button onclick="startGame()" class="mt-4 px-12 py-5 bg-[#ffeaa7] text-[#d35400] border-b-[8px] border-[#fdcb6e] rounded-full font-black text-3xl shadow-xl hover:bg-[#fff7d1] transition transform hover:scale-105 active:border-b-0 active:translate-y-2">
-                MULAI PETUALANGAN! ⚓
+            <button onclick="startGame()" class="mt-4 px-12 py-5 bg-[#FFD93D] text-[#5c4a1c] border-b-[8px] border-[#E6B800] rounded-full font-black text-3xl shadow-xl hover:bg-[#FFE570] transition transform hover:scale-105 active:border-b-0 active:translate-y-2">
+                MULAI 40 SOAL! ▶️
             </button>
         </div>
 
         <!-- Halaman Gameplay -->
         <div id="game-screen" class="hidden h-full flex flex-col z-20">
             <div class="text-center pt-2 pb-2">
-                <h2 class="text-5xl font-black text-[#0984e3] tracking-wider uppercase drop-shadow-sm" style="-webkit-text-stroke: 2px white;">
-                    TEBAK NAMA HEWAN
+                <h2 class="text-5xl font-black text-[#0288D1] tracking-wider uppercase drop-shadow-sm" style="-webkit-text-stroke: 2px white;">
+                    TEBAK HEWAN AIR
                 </h2>
             </div>
 
@@ -185,12 +190,14 @@
 
             <div class="flex-grow flex flex-row items-center justify-center gap-8 px-6 pb-6">
                 
-                <div class="w-1/2 flex flex-col items-center justify-center bg-white border-[6px] border-[#74b9ff] border-dashed rounded-[40px] p-6 shadow-sm h-full relative overflow-hidden group">
-                    <div class="absolute inset-0 bg-blue-50 opacity-50 pattern-dots"></div>
+                <!-- Card Kiri -->
+                <div class="w-1/2 flex flex-col items-center justify-center bg-white border-[6px] border-[#4DD0E1] border-dashed rounded-[40px] p-6 shadow-sm h-full relative overflow-hidden group">
+                    <div class="absolute inset-0 wave-pattern opacity-50"></div>
                     <div id="question-emoji" class="relative text-[9rem] mb-2 emoji-animate filter drop-shadow-2xl group-hover:scale-110 transition duration-500 cursor-pointer">❓</div>
-                    <p id="question-clue" class="relative text-3xl font-bold text-[#0984e3] text-center leading-snug bg-white/80 px-4 py-2 rounded-xl">"..."</p>
+                    <p id="question-clue" class="relative text-3xl font-bold text-[#0097A7] text-center leading-snug bg-white/90 px-4 py-2 rounded-xl border-2 border-[#E0F7FA]">"..."</p>
                 </div>
 
+                <!-- Card Kanan -->
                 <div class="w-1/2 h-full flex items-center justify-center">
                     <div id="options-container" class="grid grid-cols-1 gap-6 w-full">
                         <!-- Buttons injected via JS -->
@@ -201,22 +208,22 @@
 
         <!-- Halaman Hasil -->
         <div id="result-screen" class="hidden h-full flex flex-col items-center justify-center space-y-6 z-20">
-            <div id="result-emoji" class="text-9xl animate-bounce drop-shadow-xl">🏆</div>
+            <div id="result-emoji" class="text-9xl animate-bounce drop-shadow-xl">🧜‍♀️</div>
             
-            <div class="text-center space-y-4 bg-white/80 p-8 rounded-[40px] border-8 border-[#ffeaa7] shadow-2xl transform rotate-1">
-                <h2 class="text-5xl font-black text-[#0984e3]">Petualangan Selesai!</h2>
+            <div class="text-center space-y-4 bg-white/80 p-8 rounded-[40px] border-8 border-[#FFD93D] shadow-2xl transform rotate-1">
+                <h2 class="text-5xl font-black text-[#0288D1]">Petualangan Selesai!</h2>
                 
                 <div class="py-4">
-                    <p class="text-[#00b894] text-2xl font-bold uppercase tracking-wider">Nilai Kamu</p>
-                    <div class="text-8xl font-black text-[#6c5ce7] my-2 drop-shadow-md">
+                    <p class="text-[#00BCD4] text-2xl font-bold uppercase tracking-wider">Nilai Kamu</p>
+                    <div class="text-8xl font-black text-[#FF6B6B] my-2 drop-shadow-md">
                         <span id="final-score">0</span>
                     </div>
-                    <p id="result-message" class="text-3xl font-bold text-[#d35400]">Kapten Laut Hebat!</p>
+                    <p id="result-message" class="text-3xl font-bold text-[#FF9F43]">Hebat Sekali!</p>
                 </div>
             </div>
 
             <div class="flex gap-6 mt-4">
-                <button onclick="restartGame()" class="px-8 py-4 bg-[#00cec9] border-b-8 border-[#00b894] text-white rounded-3xl font-black text-2xl transition hover:-translate-y-1 active:border-b-0 active:translate-y-2">
+                <button onclick="restartGame()" class="px-8 py-4 bg-[#00BCD4] border-b-8 border-[#0097A7] text-white rounded-3xl font-black text-2xl transition hover:-translate-y-1 active:border-b-0 active:translate-y-2">
                     <i class="fas fa-redo mr-3"></i> Main Lagi
                 </button>
             </div>
@@ -225,44 +232,48 @@
     </div>
 
     <script>
-        // --- DATA 35 HEWAN AIR ---
-        // Menggunakan emoji generik (🐟/generic) jika emoji spesifik tidak tersedia di semua perangkat
+        // --- DATA 40 HEWAN AIR (DAN SEKITAR AIR) ---
         const questions = [
-            { emoji: "🦈", clue: "Gigiku tajam, aku predator laut yang ditakuti.", correct: "Hiu", options: ["Hiu", "Paus", "Lumba-lumba"] },
-            { emoji: "🐋", clue: "Aku mamalia terbesar di laut, aku bernapas dengan paru-paru.", correct: "Paus", options: ["Hiu", "Paus", "Gajah Laut"] },
-            { emoji: "🐬", clue: "Aku cerdas, ramah, dan suka melompat di atas air.", correct: "Lumba-lumba", options: ["Lumba-lumba", "Hiu", "Paus"] },
-            { emoji: "🐙", clue: "Aku punya 8 lengan dan bisa menyemprotkan tinta.", correct: "Gurita", options: ["Cumi-cumi", "Gurita", "Ubur-ubur"] },
-            { emoji: "🦑", clue: "Tubuhku lunak, punya tentakel panjang, dan tinta hitam.", correct: "Cumi-cumi", options: ["Gurita", "Cumi-cumi", "Ubur-ubur"] },
-            { emoji: "🌊", clue: "Tubuhku bening seperti jeli, hati-hati sengatanku!", correct: "Ubur-ubur", options: ["Ubur-ubur", "Cumi-cumi", "Plastik"] },
-            { emoji: "🦀", clue: "Aku berjalan miring dan punya capit yang kuat.", correct: "Kepiting", options: ["Kepiting", "Lobster", "Udang"] },
-            { emoji: "🦞", clue: "Mirip udang tapi besar dan punya capit raksasa.", correct: "Lobster", options: ["Kepiting", "Lobster", "Udang"] },
-            { emoji: "🦐", clue: "Aku kecil, badanku bungkuk, dan enak digoreng.", correct: "Udang", options: ["Udang", "Lobster", "Cumi-cumi"] },
-            { emoji: "🐢", clue: "Aku kura-kura yang hidup di laut, suka berenang jauh.", correct: "Penyu", options: ["Penyu", "Kura-kura", "Buaya"] },
-            { emoji: "🐠", clue: "Warnaku oranye putih (seperti Nemo), aku tinggal di anemon.", correct: "Ikan Badut", options: ["Ikan Badut", "Ikan Mas", "Ikan Hiu"] },
-            { emoji: "🐡", clue: "Kalau terancam, tubuhku menggelembung seperti bola berduri.", correct: "Ikan Buntal", options: ["Ikan Buntal", "Ikan Pari", "Bola"] },
-            { emoji: "🐊", clue: "Kulitku keras, gigiku tajam, aku raja sungai.", correct: "Buaya", options: ["Buaya", "Kadal", "Komodo"] },
-            { emoji: "🐸", clue: "Aku bisa hidup di air dan darat, suaraku kwek-kwek.", correct: "Katak", options: ["Katak", "Kodok", "Buaya"] },
-            { emoji: "🦭", clue: "Aku punya kumis, sirip, dan suka tepuk tangan di sirkus.", correct: "Anjing Laut", options: ["Anjing Laut", "Singa Laut", "Berang-berang"] },
-            { emoji: "🦦", clue: "Aku pandai berenang dan suka memecahkan kerang di perutku.", correct: "Berang-berang", options: ["Berang-berang", "Anjing Laut", "Tikus"] },
-            { emoji: "🐧", clue: "Aku burung yang tidak bisa terbang, tapi jago berenang di es.", correct: "Penguin", options: ["Penguin", "Bebek", "Ayam"] },
-            { emoji: "🐚", clue: "Aku tinggal di dalam cangkang keras di dasar laut.", correct: "Kerang", options: ["Kerang", "Siput", "Keong"] },
-            { emoji: "🐟", clue: "Kepalaku mirip kuda, tapi aku berenang tegak di laut.", correct: "Kuda Laut", options: ["Kuda Laut", "Kuda", "Ikan"] },
-            { emoji: "🐟", clue: "Tubuhku pipih dan lebar seperti layang-layang.", correct: "Ikan Pari", options: ["Ikan Pari", "Ikan Hiu", "Layangan"] },
-            { emoji: "⭐", clue: "Tubuhku berbentuk bintang lima, aku menempel di karang.", correct: "Bintang Laut", options: ["Bintang Laut", "Bintang", "Kerang"] },
-            { emoji: "🐍", clue: "Tubuhku panjang dan licin seperti ular, tapi aku ikan.", correct: "Belut", options: ["Belut", "Ular", "Cacing"] },
-            { emoji: "🐟", clue: "Aku punya kumis panjang (patil) dan tubuhku licin.", correct: "Ikan Lele", options: ["Ikan Lele", "Ikan Mas", "Belut"] },
-            { emoji: "🐟", clue: "Aku ikan peliharaan populer, warnaku emas atau oranye.", correct: "Ikan Mas", options: ["Ikan Mas", "Ikan Lele", "Ikan Cupang"] },
-            { emoji: "🐟", clue: "Siripku indah berwarna-warni, tapi aku suka berkelahi.", correct: "Ikan Cupang", options: ["Ikan Cupang", "Ikan Mas", "Ikan Hiu"] },
-            { emoji: "🐟", clue: "Gigiku sangat tajam, aku ikan ganas di sungai Amazon.", correct: "Piranha", options: ["Piranha", "Hiu", "Lele"] },
-            { emoji: "🦈", clue: "Kepalaku bentuknya aneh melebar seperti palu.", correct: "Hiu Martil", options: ["Hiu Martil", "Hiu Putih", "Paus"] },
-            { emoji: "🐋", clue: "Aku paus pembunuh (Orca), warnaku hitam dan putih.", correct: "Orca", options: ["Orca", "Paus Biru", "Hiu"] },
-            { emoji: "🐟", clue: "Aku sering disebut putri duyung, makananku rumput laut.", correct: "Dugong", options: ["Dugong", "Lumba-lumba", "Paus"] },
-            { emoji: "🦆", clue: "Kakiku berselaput, aku suka berenang. Wek wek wek!", correct: "Bebek", options: ["Bebek", "Ayam", "Burung"] },
-            { emoji: "🦢", clue: "Leherku panjang, buluku putih, aku berenang anggun.", correct: "Angsa", options: ["Angsa", "Bebek", "Flamingo"] },
-            { emoji: "🦩", clue: "Kakiku panjang sekali, buluku berwarna merah muda.", correct: "Flamingo", options: ["Flamingo", "Angsa", "Bangau"] },
+            { emoji: "🐟", clue: "Aku hewan bersisik yang berenang di air tawar.", correct: "Ikan Mas", options: ["Ikan Mas", "Hiu", "Paus"] },
+            { emoji: "🐠", clue: "Warnaku oranye putih, aku teman Nemo!", correct: "Ikan Badut", options: ["Ikan Badut", "Ikan Mas", "Ikan Lele"] },
+            { emoji: "🐡", clue: "Jika terancam, badanku menggelembung penuh duri.", correct: "Ikan Buntal", options: ["Ikan Buntal", "Ikan Pari", "Gurita"] },
+            { emoji: "🦈", clue: "Aku predator laut dengan gigi yang sangat tajam.", correct: "Hiu", options: ["Hiu", "Lumba-lumba", "Paus"] },
+            { emoji: "🐳", clue: "Aku mamalia terbesar di laut, menyemburkan air.", correct: "Paus", options: ["Paus", "Hiu", "Lumba-lumba"] },
+            { emoji: "🐬", clue: "Aku sangat cerdas dan suka melompat di permukaan.", correct: "Lumba-lumba", options: ["Lumba-lumba", "Hiu", "Anjing Laut"] },
+            { emoji: "🐙", clue: "Kepalaku bulat dan punya 8 tentakel.", correct: "Gurita", options: ["Gurita", "Cumi-cumi", "Ubur-ubur"] },
+            { emoji: "🦑", clue: "Badanku panjang, punya tentakel, bisa semprot tinta.", correct: "Cumi-cumi", options: ["Cumi-cumi", "Gurita", "Udang"] },
+            { emoji: "🦀", clue: "Aku punya capit kuat dan jalan menyamping.", correct: "Kepiting", options: ["Kepiting", "Lobster", "Udang"] },
+            { emoji: "🦞", clue: "Mirip kepiting tapi badanku panjang dan ada di laut dalam.", correct: "Lobster", options: ["Lobster", "Kepiting", "Udang"] },
+            { emoji: "🦐", clue: "Badanku kecil melengkung, enak digoreng.", correct: "Udang", options: ["Udang", "Cumi-cumi", "Lobster"] },
+            { emoji: "🦪", clue: "Aku punya cangkang keras dan bisa menghasilkan mutiara.", correct: "Tiram", options: ["Tiram", "Siput", "Kepiting"] },
+            { emoji: "🐢", clue: "Aku reptil laut yang punya tempurung keras.", correct: "Penyu", options: ["Penyu", "Kura-kura", "Buaya"] },
+            { emoji: "🐊", clue: "Aku reptil buas yang hidup di sungai dan rawa.", correct: "Buaya", options: ["Buaya", "Komodo", "Kadal"] },
+            { emoji: "🐸", clue: "Suaraku 'Kwekk kwek', aku bisa hidup di air dan darat.", correct: "Katak", options: ["Katak", "Buaya", "Ikan"] },
+            { emoji: "🦆", clue: "Aku unggas yang suka berenang di danau. Wek wek!", correct: "Bebek", options: ["Bebek", "Ayam", "Angsa"] },
+            { emoji: "🦢", clue: "Leherku panjang dan anggun, buluku putih bersih.", correct: "Angsa", options: ["Angsa", "Bebek", "Pelikan"] },
+            { emoji: "🐧", clue: "Aku burung yang tidak bisa terbang, hidup di kutub es.", correct: "Penguin", options: ["Penguin", "Burung Hantu", "Bebek"] },
+            { emoji: "🦩", clue: "Kakiku panjang sekali, warnaku merah muda.", correct: "Flamingo", options: ["Flamingo", "Bangau", "Angsa"] },
+            { emoji: "🦭", clue: "Aku suka tepuk tangan dan main bola di sirkus air.", correct: "Anjing Laut", options: ["Anjing Laut", "Berang-berang", "Lumba-lumba"] },
+            { emoji: "🦦", clue: "Aku pandai berenang dan suka memecahkan kerang.", correct: "Berang-berang", options: ["Berang-berang", "Tupai", "Anjing Laut"] },
             { emoji: "🦛", clue: "Mulutku sangaaat lebar, aku suka berendam di lumpur.", correct: "Kudanil", options: ["Kudanil", "Badak", "Gajah"] },
-            { emoji: "🐟", clue: "Mulutku panjang dan tajam seperti pedang.", correct: "Ikan Todak", options: ["Ikan Todak", "Ikan Hiu", "Ikan Pari"] },
-            { emoji: "🐟", clue: "Aku ikan hias dari Jepang, warnaku belang-belang.", correct: "Ikan Koi", options: ["Ikan Koi", "Ikan Mas", "Ikan Lele"] }
+            { emoji: "🐻‍❄️", clue: "Aku beruang putih yang jago berenang di air es.", correct: "Beruang Kutub", options: ["Beruang Kutub", "Panda", "Beruang Coklat"] },
+            { emoji: "🐋", clue: "Aku hewan terbesar di dunia, hatiku sebesar mobil!", correct: "Paus Biru", options: ["Paus Biru", "Hiu", "Gajah"] },
+            { emoji: "🐟", clue: "Aku punya kumis panjang dan tubuh licin.", correct: "Ikan Lele", options: ["Ikan Lele", "Ikan Mas", "Belut"] },
+            { emoji: "🦈", clue: "Kepalaku bentuknya aneh, seperti palu.", correct: "Hiu Martil", options: ["Hiu Martil", "Hiu Putih", "Paus"] },
+            { emoji: "🦀", clue: "Aku kepiting yang suka berenang, kakiku pipih.", correct: "Rajungan", options: ["Rajungan", "Kepiting", "Lobster"] },
+            { emoji: "🪼", clue: "Tubuhku bening seperti jeli dan menyengat.", correct: "Ubur-ubur", options: ["Ubur-ubur", "Cumi-cumi", "Gurita"] },
+            { emoji: "🦈", clue: "Mulutku panjang dan bergerigi seperti gergaji.", correct: "Hiu Gergaji", options: ["Hiu Gergaji", "Buaya", "Hiu"] },
+            { emoji: "🐟", clue: "Ekorku indah warna-warni, tapi aku suka berantem.", correct: "Ikan Cupang", options: ["Ikan Cupang", "Ikan Mas", "Ikan Badut"] },
+            { emoji: "🐍", clue: "Aku ular yang jago berenang di dalam laut.", correct: "Ular Laut", options: ["Ular Laut", "Belut", "Cacing"] },
+            { emoji: "🐚", clue: "Aku membawa rumah cangkangku di dasar laut.", correct: "Siput Laut", options: ["Siput Laut", "Kerang", "Kepiting"] },
+            { emoji: "🦆", clue: "Mirip bebek, tapi leherku sedikit lebih pendek.", correct: "Itik", options: ["Itik", "Angsa", "Ayam"] },
+            { emoji: "🐊", clue: "Moncongku lebar, aku mirip buaya tapi beda.", correct: "Aligator", options: ["Aligator", "Buaya", "Komodo"] },
+            { emoji: "🧊", clue: "Aku punya dua gigi taring panjang, temannya anjing laut.", correct: "Walrus", options: ["Walrus", "Anjing Laut", "Gajah"] },
+            { emoji: "⭐", clue: "Bentukku seperti bintang di langit, tapi di laut.", correct: "Bintang Laut", options: ["Bintang Laut", "Ubur-ubur", "Gurita"] },
+            { emoji: "🌿", clue: "Aku tanaman hijau yang bergoyang di dalam laut.", correct: "Rumput Laut", options: ["Rumput Laut", "Terumbu Karang", "Pohon"] },
+            { emoji: "🪸", clue: "Aku rumah bagi ikan-ikan kecil, warnaku indah.", correct: "Terumbu Karang", options: ["Terumbu Karang", "Batu", "Rumput Laut"] },
+            { emoji: "🐠", clue: "Badanku pipih lebar dan berwarna biru cerah.", correct: "Ikan Dori", options: ["Ikan Dori", "Ikan Badut", "Hiu"] },
+            { emoji: "🍤", clue: "Aku udang kecil yang sudah dimasak jadi merah.", correct: "Udang Rebus", options: ["Udang Rebus", "Kepiting", "Lobster"] }
         ];
 
         // --- Variabel Game ---
@@ -365,6 +376,19 @@
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now);
                     osc.stop(now + 0.1);
+                } else if (type === 'tick') {
+                    // Bunyi detak jam (Blip pendek)
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.frequency.setValueAtTime(1000, now);
+                    gain.gain.setValueAtTime(0.3, now); // Volume ditingkatkan agar lebih jelas
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05); // Sedikit lebih panjang
+                    
+                    osc.start(now);
+                    osc.stop(now + 0.05);
                 }
             } catch (e) {}
         }
@@ -372,8 +396,9 @@
         // --- Logika Game ---
         function startGame() {
             if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
-            // Semua 35 soal dimainkan (tidak di-slice)
             shuffledQuestions = questions.sort(() => 0.5 - Math.random()); 
+            
+            // SEMUA 40 SOAL DIMAINKAN
             
             currentQuestionIndex = 0;
             score = 0;
@@ -386,16 +411,16 @@
         }
 
         function playTransition() {
-            const emojis = ["⚓", "🚤", "🌊", "🏝️", "⛵", "🐚"];
+            const emojis = ["🚤", "⚓", "⛱️", "🚢", "🌊", "🏝️"];
             transitionEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
             
             // 1. Variasi Kata Semangat
             const spiritPhrases = [
-                "BERENANG TERUS!",
+                "SIAP-SIAP...",
                 "KAMU HEBAT!",
-                "SIAPA BERIKUTNYA?",
-                "SEMANGAT PELAUT!",
-                "AYO MENYELAM!"
+                "MENYELAM LAGI!",
+                "SEMANGAT YA!",
+                "AYO, KAMU BISA!"
             ];
             // Pilih acak
             const selectedPhrase = spiritPhrases[Math.floor(Math.random() * spiritPhrases.length)];
@@ -437,7 +462,7 @@
             void questionEmoji.offsetWidth; 
             questionEmoji.classList.add('emoji-animate');
             timerBar.style.width = '100%';
-            timerBar.style.backgroundColor = '#00cec9'; // Warna Cyan
+            timerBar.style.backgroundColor = '#00b894';
 
             questionEmoji.textContent = q.emoji;
             questionClue.textContent = q.clue;
@@ -456,17 +481,39 @@
         function startThinkingTimer() {
             canAnswer = true;
             playSound('pop');
+            
             let timeLeft = THINKING_TIME;
             const updateRate = 50; 
             const totalSteps = (THINKING_TIME * 1000) / updateRate;
             let currentStep = 0;
+            
+            // Variabel untuk melacak kapan terakhir bunyi detak diputar
+            let lastTickStep = 0;
 
             timerInterval = setInterval(() => {
                 currentStep++;
                 const percentage = 100 - ((currentStep / totalSteps) * 100);
                 timerBar.style.width = `${percentage}%`;
-                if (percentage < 30) timerBar.style.backgroundColor = '#d63031'; 
-                else if (percentage < 60) timerBar.style.backgroundColor = '#fab1a0'; 
+                
+                // Ubah warna bar dan interval detak berdasarkan persentase
+                let tickInterval = 20; // Default: setiap 20 step (1 detik)
+                
+                if (percentage < 30) {
+                    timerBar.style.backgroundColor = '#d63031'; // Merah
+                    tickInterval = 4; // Cepat: setiap 0.2 detik
+                } else if (percentage < 60) {
+                    timerBar.style.backgroundColor = '#fdcb6e'; // Kuning
+                    tickInterval = 10; // Sedang: setiap 0.5 detik
+                } else {
+                    timerBar.style.backgroundColor = '#00b894'; // Hijau
+                    tickInterval = 20; // Lambat: setiap 1 detik
+                }
+
+                // Mainkan bunyi detak jika sudah mencapai interval
+                if (currentStep - lastTickStep >= tickInterval) {
+                    playSound('tick');
+                    lastTickStep = currentStep;
+                }
 
                 if (currentStep >= totalSteps) {
                     clearInterval(timerInterval);
@@ -566,13 +613,13 @@
             const percentage = (score / maxScore) * 100;
 
             if (percentage === 100) {
-                resultMsgEl.textContent = "Luar Biasa! Ahli Lautan! 🌟";
+                resultMsgEl.textContent = "Luar Biasa! Raja Lautan! 🔱";
                 fireConfetti(true);
             } else if (percentage >= 60) {
-                resultMsgEl.textContent = "Hebat! Coba Lagi Yuk! 👍";
+                resultMsgEl.textContent = "Hebat! Penyelam Handal! 🤿";
                 fireConfetti(true);
             } else {
-                resultMsgEl.textContent = "Tetap Semangat! 💪";
+                resultMsgEl.textContent = "Ayo Belajar Berenang Lagi! 🏊";
             }
         }
 
@@ -589,8 +636,8 @@
                 var timeLeft = animationEnd - Date.now();
                 if (timeLeft <= 0) return clearInterval(interval);
                 var particleCount = 50 * (timeLeft / duration);
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'] }));
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'] }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#00BCD4', '#FFEB3B', '#FF5722', '#FFFFFF'] }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#00BCD4', '#FFEB3B', '#FF5722', '#FFFFFF'] }));
             }, 250);
         }
     </script>
