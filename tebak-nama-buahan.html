@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Buah Kids Edition (16:9)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka untuk kesan anak-anak -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <!-- Confetti Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            /* Background Kebun Segar (Gradasi Oranye ke Hijau Muda) */
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: #4A4A4A;
+        }
+
+        /* Container Kartu Besar */
+        #app-container {
+            aspect-ratio: 16/9;
+            width: 90vw;
+            max-width: 1280px;
+            max-height: 90vh;
+            background: #FFF8E1; /* Kuning krem lembut */
+            border-radius: 40px;
+            box-shadow: 0 20px 0 #FF6F00, 0 30px 40px rgba(0,0,0,0.3); /* Efek 3D Oranye */
+            border: 8px solid #FFF;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Dekorasi Buah Jatuh/Melayang */
+        .floating-fruit {
+            position: absolute;
+            font-size: 3rem;
+            animation: floatUp 15s linear infinite;
+            opacity: 0.6;
+            z-index: 0;
+            bottom: -50px;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Tombol Jawaban "Jelly" - Nuansa Buah */
+        .btn-option {
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            top: 0;
+        }
+        
+        .btn-option:hover {
+            transform: translateY(-4px);
+            filter: brightness(1.1);
+        }
+
+        .btn-option:active {
+            transform: translateY(2px);
+            box-shadow: none !important;
+        }
+
+        /* Animasi Gambar Masuk */
+        @keyframes popInImage {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .image-animate {
+            animation: popInImage 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Shake kalau salah */
+        @keyframes wobble {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            15% { transform: translateX(-15px) rotate(-5deg); }
+            30% { transform: translateX(10px) rotate(3deg); }
+            45% { transform: translateX(-10px) rotate(-3deg); }
+            60% { transform: translateX(5px) rotate(2deg); }
+        }
+        .shake {
+            animation: wobble 0.6s ease-in-out;
+        }
+
+        /* Timer Bar Animation */
+        .timer-container {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #96c93d, #ffdb3a, #ff5e62);
+            background-size: 200% 100%;
+            width: 100%;
+            transform-origin: left;
+            transition: width 0.1s linear;
+        }
+
+        /* Styling untuk Layar Transisi */
+        .pattern-bg {
+            background-image: radial-gradient(#ffffff 15%, transparent 15%);
+            background-size: 40px 40px;
+            opacity: 0.2;
+        }
+        
+        /* Background Konten Kiri (Pola Daun) */
+        .leaf-pattern {
+             background-image: repeating-linear-gradient(45deg, rgba(168, 230, 207, 0.3) 0px, rgba(168, 230, 207, 0.3) 20px, transparent 20px, transparent 40px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dekorasi Floating Fruits (Tetap Emoji untuk Background) -->
+    <div class="floating-fruit" style="left: 10%; animation-duration: 12s; animation-delay: 0s;">🍎</div>
+    <div class="floating-fruit" style="left: 25%; animation-duration: 15s; animation-delay: 2s;">🍇</div>
+    <div class="floating-fruit" style="left: 45%; animation-duration: 10s; animation-delay: 5s;">🍌</div>
+    <div class="floating-fruit" style="left: 60%; animation-duration: 18s; animation-delay: 1s;">🍉</div>
+    <div class="floating-fruit" style="left: 80%; animation-duration: 14s; animation-delay: 3s;">🍓</div>
+    <div class="floating-fruit" style="left: 90%; animation-duration: 11s; animation-delay: 6s;">🍍</div>
+
+    <div id="app-container" class="flex flex-col p-6 z-10">
+        
+        <!-- TRANSISI LAYER -->
+        <div id="transition-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#FF9800] transition-transform duration-500 translate-x-full shadow-2xl rounded-[32px]">
+            <div class="pattern-bg absolute inset-0"></div>
+            <div id="transition-emoji" class="text-9xl animate-bounce mb-6 drop-shadow-lg z-10">🚜</div>
+            <h2 id="transition-text" class="text-6xl font-black text-white tracking-wider drop-shadow-md z-10 border-4 border-white/20 px-8 py-4 rounded-full bg-white/10 backdrop-blur-sm text-center">
+                SIAP-SIAP...
+            </h2>
+        </div>
+
+        <!-- Halaman Utama (Intro) -->
+        <div id="start-screen" class="h-full flex flex-col items-center justify-center space-y-6 animate-fade-in z-20">
+            <div class="flex items-center space-x-6">
+                <!-- Gunakan gambar asli untuk intro -->
+                <img src="https://tse2.mm.bing.net/th?q=Red+Apple+Fruit&w=200&h=200&c=7&rs=1&p=0" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
+                <img src="https://tse2.mm.bing.net/th?q=Banana+Fruit&w=200&h=200&c=7&rs=1&p=0" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" style="animation-delay: 0.2s">
+                <img src="https://tse2.mm.bing.net/th?q=Grapes+Fruit&w=200&h=200&c=7&rs=1&p=0" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" style="animation-delay: 0.4s">
+            </div>
+            
+            <div class="text-center space-y-4 bg-white/50 p-6 rounded-[30px] backdrop-blur-sm border-4 border-white">
+                <h1 class="text-6xl font-black text-[#FF6F00] tracking-wide" style="text-shadow: 3px 3px 0 #FFF;">
+                    Tebak Buah!
+                </h1>
+                <p class="text-2xl text-[#FF8F00] font-bold">40 Soal Buah & Sayur Asli!</p>
+            </div>
+
+            <button onclick="startGame()" class="mt-4 px-12 py-5 bg-[#8BC34A] text-white border-b-[8px] border-[#689F38] rounded-full font-black text-3xl shadow-xl hover:bg-[#9CCC65] transition transform hover:scale-105 active:border-b-0 active:translate-y-2">
+                MULAI 40 SOAL! ▶️
+            </button>
+        </div>
+
+        <!-- Halaman Gameplay -->
+        <div id="game-screen" class="hidden h-full flex flex-col z-20">
+            <div class="text-center pt-2 pb-2">
+                <h2 class="text-5xl font-black text-[#FF6F00] tracking-wider uppercase drop-shadow-sm" style="-webkit-text-stroke: 2px white;">
+                    TEBAK NAMA BUAH
+                </h2>
+            </div>
+
+            <div class="px-6">
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="flex-grow flex flex-row items-center justify-center gap-8 px-6 pb-6">
+                
+                <!-- Card Kiri (Tempat Gambar) -->
+                <div class="w-1/2 flex flex-col items-center justify-center bg-white border-[6px] border-[#8BC34A] border-dashed rounded-[40px] p-6 shadow-sm h-full relative overflow-hidden group">
+                    <div class="absolute inset-0 leaf-pattern opacity-50"></div>
+                    
+                    <!-- Container Gambar -->
+                    <div class="relative w-full h-64 flex items-center justify-center mb-4 z-10">
+                        <img id="question-image" src="" alt="Tebak Gambar" class="image-animate max-h-full max-w-full rounded-2xl shadow-xl border-4 border-white object-contain bg-white">
+                    </div>
+
+                    <p id="question-clue" class="relative z-10 text-3xl font-bold text-[#558B2F] text-center leading-snug bg-white/95 px-6 py-3 rounded-xl border-2 border-[#DCEDC8] shadow-sm">"..."</p>
+                </div>
+
+                <!-- Card Kanan -->
+                <div class="w-1/2 h-full flex items-center justify-center">
+                    <div id="options-container" class="grid grid-cols-1 gap-6 w-full">
+                        <!-- Buttons injected via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Halaman Hasil -->
+        <div id="result-screen" class="hidden h-full flex flex-col items-center justify-center space-y-6 z-20">
+            <div id="result-emoji" class="text-9xl animate-bounce drop-shadow-xl">🏆</div>
+            
+            <div class="text-center space-y-4 bg-white/80 p-8 rounded-[40px] border-8 border-[#FFD93D] shadow-2xl transform rotate-1">
+                <h2 class="text-5xl font-black text-[#FF6F00]">Kuis Selesai!</h2>
+                
+                <div class="py-4">
+                    <p class="text-[#FF8F00] text-2xl font-bold uppercase tracking-wider">Nilai Kamu</p>
+                    <div class="text-8xl font-black text-[#8BC34A] my-2 drop-shadow-md">
+                        <span id="final-score">0</span>
+                    </div>
+                    <p id="result-message" class="text-3xl font-bold text-[#FF9F43]">Hebat Sekali!</p>
+                </div>
+            </div>
+
+            <div class="flex gap-6 mt-4">
+                <button onclick="restartGame()" class="px-8 py-4 bg-[#FF9800] border-b-8 border-[#F57C00] text-white rounded-3xl font-black text-2xl transition hover:-translate-y-1 active:border-b-0 active:translate-y-2">
+                    <i class="fas fa-redo mr-3"></i> Main Lagi
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA 40 BUAH-BUAHAN DENGAN GAMBAR ASLI ---
+        // Menggunakan placeholder image search untuk mendapatkan gambar asli
+        const getImage = (keyword) => `https://tse2.mm.bing.net/th?q=${keyword}+fruit+real+photo&w=400&h=400&c=7&rs=1&p=0`;
+
+        const questions = [
+            { image: getImage("Red Apple"), clue: "Kulitku merah mengkilap, rasaku manis dan renyah.", correct: "Apel Merah", options: ["Apel Merah", "Tomat", "Ceri"] },
+            { image: getImage("Banana"), clue: "Kulitku kuning, bentukku melengkung, disukai monyet.", correct: "Pisang", options: ["Pisang", "Jagung", "Lemon"] },
+            { image: getImage("Purple Grapes"), clue: "Aku bulat kecil bergerombol, warnaku ungu.", correct: "Anggur", options: ["Anggur", "Blueberry", "Terong"] },
+            { image: getImage("Orange Fruit"), clue: "Aku bulat oranye, rasaku manis asam segar.", correct: "Jeruk", options: ["Jeruk", "Apel", "Persik"] },
+            { image: getImage("Strawberry"), clue: "Warnaku merah bintik-bintik, ada daun hijau di atas.", correct: "Stroberi", options: ["Stroberi", "Apel", "Ceri"] },
+            { image: getImage("Watermelon Whole"), clue: "Kulitku hijau keras, dagingku merah dan banyak air.", correct: "Semangka", options: ["Semangka", "Melon", "Apel"] },
+            { image: getImage("Pineapple"), clue: "Kulitku kasar berduri, di atasku ada mahkota daun.", correct: "Nanas", options: ["Nanas", "Jagung", "Durian"] },
+            { image: getImage("Mango"), clue: "Dagingku kuning lembut, manis dan harum sekali.", correct: "Mangga", options: ["Mangga", "Pisang", "Pepaya"] },
+            { image: getImage("Lemon"), clue: "Warnaku kuning cerah, rasaku sangaaat asam.", correct: "Lemon", options: ["Lemon", "Jeruk", "Pir"] },
+            { image: getImage("Honeydew Melon"), clue: "Kulitku hijau muda, dagingku manis dan segar.", correct: "Melon", options: ["Melon", "Semangka", "Kelapa"] },
+            { image: getImage("Pear Fruit"), clue: "Bentukku seperti lonceng, warnaku hijau kekuningan.", correct: "Pir", options: ["Pir", "Apel Hijau", "Jambu"] },
+            { image: getImage("Cherry Fruit"), clue: "Kami kembar kecil, merah, dan punya tangkai panjang.", correct: "Ceri", options: ["Ceri", "Stroberi", "Anggur"] },
+            { image: getImage("Kiwi Fruit"), clue: "Kulitku coklat berbulu, dagingku hijau berbiji hitam.", correct: "Kiwi", options: ["Kiwi", "Kentang", "Melon"] },
+            { image: getImage("Coconut"), clue: "Kulitku keras, di dalamnya ada air segar.", correct: "Kelapa", options: ["Kelapa", "Melon", "Kiwi"] },
+            { image: getImage("Avocado"), clue: "Dagingku hijau mentega, bijiku bulat besar di tengah.", correct: "Alpukat", options: ["Alpukat", "Pir", "Mangga"] },
+            { image: getImage("Peach Fruit"), clue: "Kulitku berbulu halus, warnaku merah muda kekuningan.", correct: "Persik", options: ["Persik", "Apel", "Jeruk"] },
+            { image: getImage("Blueberries"), clue: "Aku beri kecil berwarna biru tua.", correct: "Blueberry", options: ["Blueberry", "Anggur", "Terong"] },
+            { image: getImage("Green Apple"), clue: "Aku apel yang kulitnya berwarna hijau, rasaku agak asam.", correct: "Apel Hijau", options: ["Apel Hijau", "Pir", "Jeruk Nipis"] },
+            { image: getImage("Tomato"), clue: "Aku sering dikira sayur, tapi aku buah merah bulat.", correct: "Tomat", options: ["Tomat", "Apel", "Persik"] },
+            { image: getImage("Carrot"), clue: "Aku sayur oranye panjang, makanan kesukaan kelinci.", correct: "Wortel", options: ["Wortel", "Jagung", "Cabai"] },
+            { image: getImage("Corn Cob"), clue: "Aku punya biji kuning manis yang berbaris rapi.", correct: "Jagung", options: ["Jagung", "Pisang", "Nanas"] },
+            { image: getImage("Eggplant"), clue: "Kulitku ungu mengkilap, bentukku lonjong.", correct: "Terong", options: ["Terong", "Anggur", "Timun"] },
+            { image: getImage("Broccoli"), clue: "Bentukku keriting hijau seperti pohon kecil.", correct: "Brokoli", options: ["Brokoli", "Sawi", "Bayam"] },
+            { image: getImage("Potato"), clue: "Aku umbi coklat yang enak dibuat keripik.", correct: "Kentang", options: ["Kentang", "Kiwi", "Ubi"] },
+            { image: getImage("Cucumber"), clue: "Aku panjang hijau, segar untuk lalapan.", correct: "Timun", options: ["Timun", "Terong", "Pare"] },
+            { image: getImage("Red Chili Pepper"), clue: "Rasaku pedas sekali! Hah hah!", correct: "Cabai", options: ["Cabai", "Wortel", "Paprika"] },
+            { image: getImage("Red Bell Pepper"), clue: "Aku seperti cabai besar tapi tidak pedas.", correct: "Paprika", options: ["Paprika", "Tomat", "Apel"] },
+            { image: getImage("Pumpkin"), clue: "Aku labu besar oranye, identik dengan Halloween.", correct: "Labu", options: ["Labu", "Jeruk", "Melon"] },
+            { image: getImage("Mushroom"), clue: "Aku bukan tumbuhan, aku punya payung di atas.", correct: "Jamur", options: ["Jamur", "Brokoli", "Bawang"] },
+            { image: getImage("Peanuts"), clue: "Aku punya cangkang kacang, isiku gurih.", correct: "Kacang Tanah", options: ["Kacang Tanah", "Kentang", "Kedelai"] },
+            { image: getImage("Chestnut"), clue: "Aku kacang coklat yang keras.", correct: "Kacang Berangan", options: ["Kacang Berangan", "Bawang", "Kelapa"] },
+            { image: getImage("Garlic"), clue: "Warnaku putih, bauku tajam untuk bumbu masak.", correct: "Bawang Putih", options: ["Bawang Putih", "Bawang Bombay", "Lobak"] },
+            { image: getImage("Onion"), clue: "Kalau mengupasku, kamu bisa menangis.", correct: "Bawang Bombay", options: ["Bawang Bombay", "Bawang Putih", "Kelapa"] },
+            { image: getImage("Bok Choy"), clue: "Aku sayuran hijau berlembar-lembar.", correct: "Sawi", options: ["Sawi", "Brokoli", "Timun"] },
+            { image: getImage("Sweet Potato"), clue: "Aku umbi manis berwarna ungu atau kuning.", correct: "Ubi", options: ["Ubi", "Kentang", "Terong"] },
+            { image: getImage("Olives"), clue: "Aku kecil hijau atau hitam, rasaku asin gurih.", correct: "Zaitun", options: ["Zaitun", "Anggur", "Blueberry"] },
+            { image: getImage("Fruit Salad"), clue: "Aku campuran berbagai macam buah dan sayur.", correct: "Salad", options: ["Salad", "Jus", "Sup"] },
+            { image: getImage("Juice Box"), clue: "Aku air sari buah yang dimasukkan ke kotak.", correct: "Jus Buah", options: ["Jus Buah", "Susu", "Air"] },
+            { image: getImage("Bread Loaf"), clue: "Aku terbuat dari gandum, enak dimakan pagi hari.", correct: "Roti", options: ["Roti", "Kentang", "Jagung"] },
+            { image: getImage("Honey Jar"), clue: "Aku cairan manis kental yang dibuat lebah.", correct: "Madu", options: ["Madu", "Sirup", "Minyak"] }
+        ];
+
+        // --- Variabel Game ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+        let canAnswer = false;
+        
+        let timerInterval;
+        let readingTimeout;
+        const THINKING_TIME = 6; 
+        const READING_TIME = 4;
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionImage = document.getElementById('question-image'); // Updated ID
+        const questionClue = document.getElementById('question-clue');
+        const optionsContainer = document.getElementById('options-container');
+        const finalScoreEl = document.getElementById('final-score');
+        const resultMsgEl = document.getElementById('result-message');
+        const appContainer = document.getElementById('app-container');
+        const timerBar = document.getElementById('timer-bar');
+        const transitionScreen = document.getElementById('transition-screen');
+        const transitionEmoji = document.getElementById('transition-emoji');
+        const transitionText = document.getElementById('transition-text');
+
+        // --- Fungsi Audio ---
+        function speakClue(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                const voices = window.speechSynthesis.getVoices();
+                const googleVoice = voices.find(v => v.lang === 'id-ID' && v.name.includes('Google'));
+                if (googleVoice) utterance.voice = googleVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function stopSpeaking() {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        function playSound(type) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'correct') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'wrong') {
+                    // "Uh-oh!" sound
+                    const osc1 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(ctx.destination);
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(440, now); 
+                    gain1.gain.setValueAtTime(0.2, now);
+                    gain1.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc1.start(now);
+                    osc1.stop(now + 0.15);
+
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(349, now + 0.2); 
+                    osc2.frequency.linearRampToValueAtTime(330, now + 0.5); 
+                    gain2.gain.setValueAtTime(0.2, now + 0.2);
+                    gain2.gain.linearRampToValueAtTime(0.01, now + 0.5);
+                    osc2.start(now + 0.2);
+                    osc2.stop(now + 0.5);
+                } else if (type === 'pop') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'tick') {
+                    // Bunyi detak jam (Blip pendek) - Volume dinaikkan ke 0.3
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.frequency.setValueAtTime(1000, now);
+                    gain.gain.setValueAtTime(0.3, now); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                }
+            } catch (e) {}
+        }
+
+        // --- Logika Game ---
+        function startGame() {
+            if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+            shuffledQuestions = questions.sort(() => 0.5 - Math.random()); 
+            
+            // SEMUA 40 SOAL DIMAINKAN
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            loadQuestion();
+            playSound('pop');
+        }
+
+        function playTransition() {
+            const emojis = ["🍎", "🍇", "🍌", "🍉", "🍓", "🍍"];
+            transitionEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            // 1. Variasi Kata Semangat
+            const spiritPhrases = [
+                "SIAP-SIAP...",
+                "KAMU HEBAT!",
+                "PANEN BUAH!",
+                "SEMANGAT YA!",
+                "AYO, KAMU BISA!"
+            ];
+            // Pilih acak
+            const selectedPhrase = spiritPhrases[Math.floor(Math.random() * spiritPhrases.length)];
+            
+            // Set teks di layar
+            transitionText.textContent = selectedPhrase;
+
+            // 2. Bacakan kata semangat dengan suara
+            speakClue(selectedPhrase);
+
+            transitionScreen.classList.remove('translate-x-full');
+            transitionScreen.classList.add('translate-x-0');
+            playSound('pop');
+
+            setTimeout(() => {
+                loadQuestion();
+                setTimeout(() => {
+                    transitionScreen.classList.remove('translate-x-0');
+                    transitionScreen.classList.add('-translate-x-full');
+                    setTimeout(() => {
+                        transitionScreen.classList.remove('transition-transform');
+                        transitionScreen.classList.remove('-translate-x-full');
+                        transitionScreen.classList.add('translate-x-full');
+                        void transitionScreen.offsetWidth;
+                        transitionScreen.classList.add('transition-transform');
+                    }, 500);
+                }, 1000);
+            }, 600);
+        }
+
+        function loadQuestion() {
+            clearInterval(timerInterval);
+            clearTimeout(readingTimeout);
+            canAnswer = false;
+            
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Reset animasi gambar
+            questionImage.classList.remove('image-animate');
+            void questionImage.offsetWidth; 
+            questionImage.classList.add('image-animate');
+            
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#96c93d'; // Hijau Segar
+
+            // Set gambar src
+            questionImage.src = q.image;
+            questionClue.textContent = q.clue;
+            
+            renderOptions(q);
+
+            setTimeout(() => {
+                speakClue(q.clue + " Siapakah aku?");
+            }, 800);
+
+            readingTimeout = setTimeout(() => {
+                startThinkingTimer();
+            }, READING_TIME * 1000);
+        }
+
+        function startThinkingTimer() {
+            canAnswer = true;
+            playSound('pop');
+            
+            let timeLeft = THINKING_TIME;
+            const updateRate = 50; 
+            const totalSteps = (THINKING_TIME * 1000) / updateRate;
+            let currentStep = 0;
+            
+            // Variabel untuk melacak kapan terakhir bunyi detak diputar
+            let lastTickStep = 0;
+
+            timerInterval = setInterval(() => {
+                currentStep++;
+                const percentage = 100 - ((currentStep / totalSteps) * 100);
+                timerBar.style.width = `${percentage}%`;
+                
+                // Ubah warna bar dan interval detak berdasarkan persentase
+                let tickInterval = 20; // Default: setiap 20 step (1 detik)
+                
+                if (percentage < 30) {
+                    timerBar.style.backgroundColor = '#d63031'; // Merah
+                    tickInterval = 4; // Cepat: setiap 0.2 detik
+                } else if (percentage < 60) {
+                    timerBar.style.backgroundColor = '#ffdb3a'; // Kuning
+                    tickInterval = 10; // Sedang: setiap 0.5 detik
+                } else {
+                    timerBar.style.backgroundColor = '#96c93d'; // Hijau
+                    tickInterval = 20; // Lambat: setiap 1 detik
+                }
+
+                // Mainkan bunyi detak jika sudah mencapai interval
+                if (currentStep - lastTickStep >= tickInterval) {
+                    playSound('tick');
+                    lastTickStep = currentStep;
+                }
+
+                if (currentStep >= totalSteps) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, updateRate);
+        }
+
+        function handleTimeOut() {
+            canAnswer = false;
+            appContainer.classList.add('shake');
+            playSound('wrong');
+            setTimeout(() => appContainer.classList.remove('shake'), 600);
+
+            const q = shuffledQuestions[currentQuestionIndex];
+            setTimeout(() => speakClue("Aku adalah " + q.correct), 500);
+
+            const allBtns = optionsContainer.querySelectorAll('button');
+            allBtns.forEach(btn => {
+                if (btn.textContent.includes(q.correct)) {
+                    btn.classList.add('ring-4', 'ring-[#8BC34A]', 'scale-105', 'bg-[#8BC34A]');
+                    btn.className = btn.className.replace(/bg-\w+-400/, 'bg-[#8BC34A]').replace(/border-\w+-600/, 'border-[#558B2F]');
+                } else {
+                    btn.style.opacity = '0.5';
+                }
+            });
+
+            setTimeout(nextQuestion, 3500);
+        }
+
+        function renderOptions(q) {
+            optionsContainer.innerHTML = '';
+            const options = [...q.options].sort(() => 0.5 - Math.random());
+            const colors = [
+                { bg: 'bg-red-400', border: 'border-red-600', hover: 'hover:bg-red-500' },
+                { bg: 'bg-green-400', border: 'border-green-600', hover: 'hover:bg-green-500' },
+                { bg: 'bg-yellow-400', border: 'border-yellow-600', hover: 'hover:bg-yellow-500' }
+            ];
+
+            options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                const color = colors[index % colors.length];
+                btn.className = `btn-option w-full py-6 px-8 ${color.bg} border-b-[6px] ${color.border} text-white rounded-3xl text-2xl font-black ${color.hover} flex items-center shadow-lg active:border-b-0 active:translate-y-2 group`;
+                const labels = ["A", "B", "C"];
+                btn.innerHTML = `
+                    <span class="bg-white text-gray-700 w-12 h-12 flex items-center justify-center rounded-full text-2xl font-black mr-6 shadow-sm group-hover:scale-110 transition">${labels[index]}</span>
+                    <span class="flex-grow text-left text-shadow-sm text-3xl">${opt}</span>
+                `;
+                btn.onclick = () => checkAnswer(btn, opt, q.correct);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btn, selected, correct) {
+            if (!canAnswer) return; 
+            canAnswer = false;
+            clearInterval(timerInterval); 
+            stopSpeaking(); 
+
+            const allBtns = optionsContainer.querySelectorAll('button');
+
+            if (selected === correct) {
+                btn.innerHTML = `<span class="w-full text-center text-3xl">🎉 BENAR!</span>`;
+                btn.className = `w-full py-6 bg-[#8BC34A] border-b-[6px] border-[#558B2F] text-white rounded-3xl text-2xl font-black shadow-lg transform scale-105`;
+                score += 10; 
+                playSound('correct');
+                fireConfetti(); 
+            } else {
+                btn.innerHTML = `<span class="w-full text-center text-3xl">❌ SALAH!</span>`;
+                btn.className = `w-full py-6 bg-[#ff7675] border-b-[6px] border-[#d63031] text-white rounded-3xl text-2xl font-black shadow-lg`;
+                appContainer.classList.add('shake');
+                playSound('wrong');
+                setTimeout(() => appContainer.classList.remove('shake'), 600);
+                allBtns.forEach(b => {
+                    if (b.textContent.includes(correct)) b.classList.add('ring-4', 'ring-white', 'scale-105');
+                });
+            }
+            setTimeout(nextQuestion, 2000);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                playTransition();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            finalScoreEl.textContent = score;
+            playSound('pop');
+            
+            const maxScore = shuffledQuestions.length * 10;
+            const percentage = (score / maxScore) * 100;
+
+            if (percentage === 100) {
+                resultMsgEl.textContent = "Sempurna! Panen Raya! 🍎👑";
+                fireConfetti(true);
+            } else if (percentage >= 60) {
+                resultMsgEl.textContent = "Hebat! Petani Cilik! 🥕";
+                fireConfetti(true);
+            } else {
+                resultMsgEl.textContent = "Ayo Makan Buah Lagi! 🥗";
+            }
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function fireConfetti(long = false) {
+            var duration = long ? 3 * 1000 : 0.5 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+            var random = function(min, max) { return Math.random() * (max - min) + min; }
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#FF9800', '#8BC34A', '#FFEB3B', '#FFFFFF'] }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#FF9800', '#8BC34A', '#FFEB3B', '#FFFFFF'] }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
