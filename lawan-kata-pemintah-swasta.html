@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Antonim Profesional</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #0ea5e9;
+            user-select: none;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 1024px;
+            aspect-ratio: 16/9;
+            background: #f0f9ff;
+            border-radius: 2rem;
+            box-shadow: 0 25px 0px rgba(0,0,0,0.15);
+            border: 8px solid #ffffff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER LEVEL --- */
+        .level-header {
+            width: 100%;
+            background-color: #ffffff;
+            border-bottom: 4px solid #e0f2fe;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 40;
+            gap: 1rem;
+            height: 80px;
+            position: relative; 
+        }
+
+        .level-card {
+            padding: 0.5rem 1.5rem;
+            border-radius: 99px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 700;
+            position: relative;
+            border: 3px solid transparent;
+            cursor: default;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .level-active {
+            background-color: #38bdf8;
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3);
+            border-color: #0284c7;
+        }
+
+        .level-inactive {
+            background-color: #f1f5f9;
+            color: #cbd5e1;
+            transform: scale(0.95);
+            opacity: 0.7; 
+        }
+
+        /* --- MAIN CONTENT & ANIMASI --- */
+        .main-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 1rem;
+            
+            /* Animasi Pergantian Warna Dasar */
+            animation: color-cycle 50s infinite; 
+            background-color: #7dd3fc;
+        }
+
+        @keyframes color-cycle {
+            0%   { background-color: #7dd3fc; } 
+            20%  { background-color: #fde047; } 
+            40%  { background-color: #fca5a5; } 
+            60%  { background-color: #86efac; } 
+            80%  { background-color: #d8b4fe; } 
+            100% { background-color: #7dd3fc; } 
+        }
+
+        .main-content::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-conic-gradient(
+                from 0deg,
+                rgba(255, 255, 255, 0.4) 0deg 15deg, 
+                transparent 15deg 30deg
+            );
+            animation: rotate-sunburst 60s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes rotate-sunburst {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2rem;
+            width: 100%;
+            height: 100%;
+            z-index: 1; 
+        }
+
+        /* --- QUESTION BOARD --- */
+        .question-board {
+            background: #fde047;
+            padding: 1.5rem 3rem;
+            border-radius: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border: 4px solid #facc15;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+        }
+        
+        .question-board::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 20px 20px 0;
+            border-style: solid;
+            border-color: #eab308 transparent transparent transparent;
+        }
+         .question-board::before {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 20px 20px 0;
+            border-style: solid;
+            border-color: #fde047 transparent transparent transparent;
+            z-index: 1;
+        }
+
+        /* --- BUTTONS --- */
+        .btn-option {
+            transition: all 0.1s;
+            border-bottom-width: 8px;
+            border-radius: 1.5rem;
+            text-transform: capitalize;
+            position: relative;
+            top: 0;
+            white-space: normal; 
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0; 
+        }
+
+        .btn-option:active {
+            top: 8px;
+            border-bottom-width: 0px;
+            transform: translateY(2px);
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Warna Button */
+        .opt-0 { background-color: #ff6b6b; border-color: #c92a2a; color: white; } 
+        .opt-0:hover { background-color: #ff8787; }
+        .opt-1 { background-color: #fcc419; border-color: #e67700; color: #5f370e; } 
+        .opt-1:hover { background-color: #ffd43b; }
+        .opt-2 { background-color: #51cf66; border-color: #2b8a3e; color: white; } 
+        .opt-2:hover { background-color: #69db7c; }
+        .opt-3 { background-color: #4dabf7; border-color: #1971c2; color: white; } 
+        .opt-3:hover { background-color: #74c0fc; }
+
+        .btn-option.correct {
+            background-color: #22c55e !important;
+            border-color: #14532d !important;
+            color: white !important;
+            opacity: 1 !important;
+        }
+
+        .btn-option.wrong {
+            background-color: #ef4444 !important;
+            border-color: #7f1d1d !important;
+            opacity: 0.6 !important;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .timer-wrapper {
+            background: white;
+            padding: 8px;
+            border-radius: 99px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+            margin-top: auto;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timer-bar-bg {
+            width: 100%;
+            height: 16px;
+            background-color: #f1f5f9;
+            border-radius: 99px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #facc15, #f97316);
+            width: 100%;
+            border-radius: 99px;
+            transform-origin: left;
+        }
+
+        .animate-timer {
+            animation: shrink 5s linear forwards;
+        }
+
+        @keyframes shrink {
+            0% { width: 100%; background: #4ade80; }
+            50% { background: #facc15; }
+            100% { width: 0%; background: #ef4444; }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            z-index: 50;
+        }
+
+        .header-text {
+            background: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 99px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0284c7;
+            box-shadow: 0 3px 0 #bae6fd;
+            border: 2px solid #e0f2fe;
+            margin-right: 1rem;
+        }
+
+        /* --- ANIMASI ZOOM OUT UNTUK SOAL --- */
+        @keyframes zoom-out-enter {
+            0% { transform: scale(2.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-zoom-out {
+            animation: zoom-out-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* --- ANIMASI ZOOM IN (POP UP) UNTUK OPSI --- */
+        @keyframes zoom-in-pop {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-pop-in {
+            animation: zoom-in-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @media (max-width: 640px) {
+            #game-container {
+                height: 100vh;
+                width: 100vw;
+                max-width: none;
+                border: none;
+                border-radius: 0;
+            }
+            .level-header {
+                height: 60px;
+                padding: 0.5rem;
+                gap: 0.5rem;
+                justify-content: center;
+            }
+            .level-card {
+                padding: 0.25rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .level-card span:first-child { 
+                display: none;
+            }
+            .question-board {
+                padding: 1rem;
+                margin-top: 0.5rem;
+            }
+            h2 { font-size: 2rem; }
+            .btn-option {
+                padding: 1rem;
+                font-size: 1.25rem !important;
+            }
+            .header-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Container Utama -->
+    <div id="game-container">
+        
+        <!-- HEADER LEVEL -->
+        <div class="level-header">
+            
+            <div id="badge-level-0" class="level-card lvl-mudah level-inactive ml-12 sm:ml-0">
+                <span>🌱</span>
+                <span>MUDAH</span>
+            </div>
+
+            <div class="text-sky-200 text-sm"><i class="fas fa-chevron-right"></i></div>
+
+            <div id="badge-level-1" class="level-card lvl-sedang level-inactive">
+                <span>🌿</span>
+                <span>SEDANG</span>
+            </div>
+
+            <div class="text-sky-200 text-sm"><i class="fas fa-chevron-right"></i></div>
+
+            <div id="badge-level-2" class="level-card lvl-sulit level-inactive">
+                <span>🌳</span>
+                <span>SULIT</span>
+            </div>
+
+            <!-- Judul Kecil di Kanan (Desktop Only) -->
+            <div class="ml-auto header-text hidden sm:block">
+                Tes Antonim Kantor
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            
+            <!-- Halaman Awal -->
+            <div id="start-screen" class="screen z-20 bg-white/90 backdrop-blur-sm">
+                <div class="text-center max-w-lg">
+                    <h1 class="text-6xl font-black text-sky-500 mb-2 drop-shadow-sm tracking-tighter" style="-webkit-text-stroke: 2px #0ea5e9;">TEBAK ANTONIM</h1>
+                    <div class="bg-yellow-400 text-yellow-900 inline-block px-4 py-1 rounded-full font-bold mb-8 transform -rotate-2 border-2 border-yellow-600">Edisi Profesional</div>
+                    <br>
+                    <button onclick="startGame()" class="bg-green-500 hover:bg-green-600 text-white font-black py-4 px-16 rounded-3xl text-3xl shadow-[0_8px_0_#15803d] active:shadow-none active:translate-y-[8px] transition-all animate-pulse">
+                        MULAI MAIN ▶
+                    </button>
+                    <p class="mt-4 text-gray-500 text-sm font-bold"><i class="fas fa-volume-up mr-1"></i> Jangan lupa nyalakan suara!</p>
+                </div>
+            </div>
+
+            <!-- Halaman Game -->
+            <div id="game-screen" class="screen hidden">
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                    
+                    <div class="question-board">
+                        <p class="text-yellow-800 font-bold tracking-widest text-sm mb-2 uppercase">Apa lawan kata dari</p>
+                        <h2 id="question-word" class="text-6xl font-black text-black drop-shadow-sm">???</h2>
+                    </div>
+
+                    <div id="options-container" class="grid grid-cols-2 gap-4 w-full max-w-4xl px-4 mt-2">
+                        <!-- Tombol generate by JS -->
+                    </div>
+
+                    <div class="timer-wrapper">
+                        <div class="timer-bar-bg">
+                            <div id="timer-bar" class="timer-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Halaman Hasil Akhir -->
+            <div id="result-screen" class="screen hidden bg-white/95 z-30">
+                <div class="flex flex-col items-center animate-fade-in text-center">
+                    <div id="result-emoji" class="text-9xl mb-6">🎉</div>
+                    <h2 class="text-5xl font-black text-sky-500 mb-2">SELESAI!</h2>
+                    <p class="text-xl text-slate-400 font-bold mb-8">Hasil Kuis Anda</p>
+                    
+                    <div class="bg-yellow-100 border-4 border-yellow-400 p-8 rounded-3xl mb-10 w-64 transform rotate-1 shadow-lg">
+                        <p class="text-yellow-700 font-bold mb-2 uppercase text-sm">Skor Akhir</p>
+                        <div class="text-7xl font-black text-yellow-500">
+                            <span id="final-score">0</span>
+                        </div>
+                    </div>
+
+                    <button onclick="location.reload()" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-10 rounded-2xl text-2xl shadow-[0_6px_0_#0369a1] active:shadow-none active:translate-y-[6px] transition-all">
+                        MAIN LAGI 🔄
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Data Game ANTONIM PROFESIONAL - TOTAL 100 SOAL
+        const gameData = [
+            {
+                levelName: "MUDAH",
+                questions: [
+                    { word: "Aktif", options: ["Giat", "Pasif", "Sibuk", "Lancar"], answer: 1 },
+                    { word: "Positif", options: ["Baik", "Benar", "Negatif", "Salah"], answer: 2 },
+                    { word: "Laba", options: ["Untung", "Rugi", "Modal", "Hasil"], answer: 1 },
+                    { word: "Jual", options: ["Dagang", "Beli", "Tawar", "Borong"], answer: 1 },
+                    { word: "Masuk", options: ["Datang", "Keluar", "Pulang", "Hadir"], answer: 1 },
+                    { word: "Hulu", options: ["Atas", "Pusat", "Hilir", "Muara"], answer: 2 },
+                    { word: "Maju", options: ["Jalan", "Mundur", "Lari", "Diam"], answer: 1 },
+                    { word: "Naik", options: ["Turun", "Terbang", "Jatuh", "Tinggi"], answer: 0 },
+                    { word: "Buka", options: ["Tutup", "Kunci", "Masuk", "Pintu"], answer: 0 },
+                    { word: "Hadir", options: ["Datang", "Absen", "Lewat", "Tamu"], answer: 1 },
+                    { word: "Terima", options: ["Ambil", "Kasih", "Tolak", "Beri"], answer: 2 },
+                    { word: "Setuju", options: ["Sepakat", "Menolak", "Yakin", "Ikut"], answer: 1 },
+                    { word: "Untung", options: ["Laba", "Kaya", "Buntung", "Mujur"], answer: 2 },
+                    { word: "Depan", options: ["Muka", "Belakang", "Samping", "Luar"], answer: 1 },
+                    { word: "Atas", options: ["Langit", "Bawah", "Dasar", "Puncak"], answer: 1 },
+                    { word: "Dalam", options: ["Isi", "Inti", "Luar", "Kulit"], answer: 2 },
+                    { word: "Awal", options: ["Mulai", "Pertama", "Akhir", "Ujung"], answer: 2 },
+                    { word: "Asli", options: ["Murni", "Palsu", "Tulen", "Sah"], answer: 1 },
+                    { word: "Baru", options: ["Modern", "Bekas", "Kini", "Segar"], answer: 1 },
+                    { word: "Cepat", options: ["Kilat", "Lambat", "Segera", "Laju"], answer: 1 },
+                    { word: "Mudah", options: ["Gampang", "Sulit", "Ringan", "Enteng"], answer: 1 },
+                    { word: "Murah", options: ["Hemat", "Mahal", "Diskon", "Gratis"], answer: 1 },
+                    { word: "Panjang", options: ["Lama", "Pendek", "Jauh", "Lebar"], answer: 1 },
+                    { word: "Besar", options: ["Luas", "Agung", "Kecil", "Mikro"], answer: 2 },
+                    { word: "Berat", options: ["Beban", "Kuat", "Ringan", "Enteng"], answer: 2 },
+                    { word: "Kanan", options: ["Timur", "Kiri", "Samping", "Lurus"], answer: 1 },
+                    { word: "Laki-laki", options: ["Pria", "Perempuan", "Bapak", "Putra"], answer: 1 },
+                    { word: "Siang", options: ["Pagi", "Sore", "Malam", "Terang"], answer: 2 },
+                    { word: "Penuh", options: ["Isi", "Banyak", "Kosong", "Hampa"], answer: 2 },
+                    { word: "Bersih", options: ["Suci", "Rapi", "Kotor", "Kumuh"], answer: 2 },
+                    { word: "Terang", options: ["Jelas", "Gelap", "Suram", "Redup"], answer: 1 },
+                    { word: "Genap", options: ["Bulat", "Ganjil", "Pas", "Utuh"], answer: 1 },
+                    { word: "Pro", options: ["Dukung", "Setuju", "Kontra", "Lawan"], answer: 2 }
+                ]
+            },
+            {
+                levelName: "SEDANG",
+                questions: [
+                    { word: "Mikro", options: ["Kecil", "Makro", "Mini", "Detail"], answer: 1 },
+                    { word: "Ekspor", options: ["Kirim", "Impor", "Dagang", "Luar"], answer: 1 },
+                    { word: "Debit", options: ["Masuk", "Kredit", "Bayar", "Hutang"], answer: 1 },
+                    { word: "Bruto", options: ["Kotor", "Neto", "Berat", "Total"], answer: 1 },
+                    { word: "Fiktif", options: ["Palsu", "Khayal", "Faktual", "Nyata"], answer: 2 },
+                    { word: "Legal", options: ["Sah", "Resmi", "Ilegal", "Hukum"], answer: 2 },
+                    { word: "Formal", options: ["Resmi", "Informal", "Baku", "Kaku"], answer: 1 },
+                    { word: "Internal", options: ["Dalam", "Eksternal", "Pusat", "Inti"], answer: 1 },
+                    { word: "Minimal", options: ["Sedikit", "Maksimal", "Kurang", "Kecil"], answer: 1 },
+                    { word: "Mayoritas", options: ["Banyak", "Umum", "Minoritas", "Warga"], answer: 2 },
+                    { word: "Objektif", options: ["Adil", "Subjektif", "Netral", "Jujur"], answer: 1 },
+                    { word: "Optimis", options: ["Yakin", "Pesimis", "Harap", "Positif"], answer: 1 },
+                    { word: "Pasca", options: ["Sesudah", "Pra", "Lalu", "Lewat"], answer: 1 },
+                    { word: "Primer", options: ["Utama", "Pokok", "Sekunder", "Dasar"], answer: 2 },
+                    { word: "Simpati", options: ["Peduli", "Antipati", "Kasihan", "Suka"], answer: 1 },
+                    { word: "Stabil", options: ["Tetap", "Labil", "Kokoh", "Diam"], answer: 1 },
+                    { word: "Statis", options: ["Diam", "Tetap", "Dinamis", "Gerak"], answer: 2 },
+                    { word: "Tradisional", options: ["Kuno", "Modern", "Lama", "Adat"], answer: 1 },
+                    { word: "Umum", options: ["Biasa", "Rata", "Khusus", "Publik"], answer: 2 },
+                    { word: "Vertikal", options: ["Tegak", "Lurus", "Horizontal", "Datar"], answer: 2 },
+                    { word: "Acak", options: ["Sembarang", "Teratur", "Rapi", "Pilih"], answer: 1 },
+                    { word: "Gagal", options: ["Rugi", "Kalah", "Sukses", "Jaya"], answer: 2 },
+                    { word: "Hemat", options: ["Irit", "Boros", "Kikir", "Simpan"], answer: 1 },
+                    { word: "Ingat", options: ["Hafal", "Lupa", "Tahu", "Kenal"], answer: 1 },
+                    { word: "Lancar", options: ["Cepat", "Macet", "Mulus", "Mudah"], answer: 1 },
+                    { word: "Longgar", options: ["Luas", "Besar", "Ketat", "Sempit"], answer: 2 },
+                    { word: "Padat", options: ["Penuh", "Isi", "Renggang", "Kosong"], answer: 2 },
+                    { word: "Rajin", options: ["Giat", "Tekun", "Malas", "Pasif"], answer: 2 },
+                    { word: "Rapi", options: ["Bersih", "Indah", "Berantakan", "Kacau"], answer: 2 },
+                    { word: "Sederhana", options: ["Biasa", "Mudah", "Rumit", "Mewah"], answer: 2 },
+                    { word: "Tajam", options: ["Runcing", "Pintar", "Tumpul", "Bodoh"], answer: 2 },
+                    { word: "Terbit", options: ["Muncul", "Lahir", "Tenggelam", "Hilang"], answer: 2 },
+                    { word: "Muda", options: ["Baru", "Segar", "Tua", "Kuno"], answer: 2 }
+                ]
+            },
+            {
+                levelName: "SULIT",
+                questions: [
+                    { word: "Absolut", options: ["Mutlak", "Pasti", "Relatif", "Nisbi"], answer: 2 },
+                    { word: "Abstrak", options: ["Maya", "Semu", "Konkret", "Nyata"], answer: 2 },
+                    { word: "Defisit", options: ["Kurang", "Rugi", "Surplus", "Lebih"], answer: 2 },
+                    { word: "Deflasi", options: ["Turun", "Inflasi", "Naik", "Stabil"], answer: 1 },
+                    { word: "Deduksi", options: ["Umum", "Logika", "Induksi", "Khusus"], answer: 2 },
+                    { word: "Destruktif", options: ["Rusak", "Hancur", "Konstruktif", "Bangun"], answer: 2 },
+                    { word: "Divergen", options: ["Pencar", "Beda", "Konvergen", "Pusat"], answer: 2 },
+                    { word: "Ekstrinsik", options: ["Luar", "Asing", "Intrinsik", "Dalam"], answer: 2 },
+                    { word: "Epilog", options: ["Akhir", "Tutup", "Prolog", "Awal"], answer: 2 },
+                    { word: "Fisik", options: ["Badan", "Raga", "Mental", "Jiwa"], answer: 2 },
+                    { word: "Heterogen", options: ["Beragam", "Beda", "Homogen", "Sama"], answer: 2 },
+                    { word: "Implisit", options: ["Tersirat", "Samar", "Eksplisit", "Jelas"], answer: 2 },
+                    { word: "Insentif", options: ["Bonus", "Hadiah", "Disinsentif", "Hukuman"], answer: 2 },
+                    { word: "Konservatif", options: ["Kuno", "Kolot", "Progresif", "Maju"], answer: 2 },
+                    { word: "Kuantitatif", options: ["Jumlah", "Angka", "Kualitatif", "Mutu"], answer: 2 },
+                    { word: "Monoton", options: ["Sama", "Bosan", "Variatif", "Beragam"], answer: 2 },
+                    { word: "Nisbi", options: ["Relatif", "Tergantung", "Mutlak", "Pasti"], answer: 2 },
+                    { word: "Permanen", options: ["Tetap", "Abadi", "Temporer", "Sesaat"], answer: 2 },
+                    { word: "Plural", options: ["Jamak", "Banyak", "Tunggal", "Satu"], answer: 2 },
+                    { word: "Prematur", options: ["Dini", "Awal", "Matang", "Siap"], answer: 2 },
+                    { word: "Preventif", options: ["Cegah", "Tangkal", "Kuratif", "Obat"], answer: 2 },
+                    { word: "Progresif", options: ["Maju", "Depan", "Regresif", "Mundur"], answer: 2 },
+                    { word: "Rasional", options: ["Logis", "Nalar", "Irasional", "Mustahil"], answer: 2 },
+                    { word: "Reaktif", options: ["Tanggap", "Respon", "Proaktif", "Inisiatif"], answer: 2 },
+                    { word: "Relevan", options: ["Sesuai", "Cocok", "Irrelevan", "Beda"], answer: 2 },
+                    { word: "Simultan", options: ["Serentak", "Bareng", "Parsial", "Bagian"], answer: 2 },
+                    { word: "Skeptis", options: ["Ragu", "Curiga", "Yakin", "Optimis"], answer: 2 },
+                    { word: "Sporadis", options: ["Jarang", "Kadang", "Sering", "Rutin"], answer: 2 },
+                    { word: "Tesis", options: ["Teori", "Pendapat", "Antitesis", "Sanggah"], answer: 2 },
+                    { word: "Universal", options: ["Umum", "Semesta", "Parsial", "Khusus"], answer: 2 },
+                    { word: "Valid", options: ["Sah", "Benar", "Invalid", "Batal"], answer: 2 },
+                    { word: "Verbal", options: ["Lisan", "Kata", "Nonverbal", "Isyarat"], answer: 2 },
+                    { word: "Virtual", options: ["Maya", "Siber", "Fisik", "Nyata"], answer: 2 },
+                    { word: "Kolektif", options: ["Bersama", "Gabungan", "Individual", "Sendiri"], answer: 2 }
+                ]
+            }
+        ];
+
+        let currentLevelIndex = 0;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswering = false;
+        let timerTimeout;
+
+        // Elements
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionWord = document.getElementById('question-word');
+        const optionsContainer = document.getElementById('options-container');
+        const timerBar = document.getElementById('timer-bar');
+
+        // Speech Function
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID'; 
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.1; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Sound Effects (SFX)
+        function playSound(type) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                oscillator.type = 'triangle'; 
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                oscillator.type = 'sine'; 
+                oscillator.frequency.setValueAtTime(300, audioCtx.currentTime); 
+                oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // Update Sidebar
+        function updateSidebar() {
+            for (let i = 0; i < 3; i++) {
+                const badge = document.getElementById(`badge-level-${i}`);
+                if (i === currentLevelIndex) {
+                    badge.classList.remove('level-inactive');
+                    badge.classList.add('level-active');
+                } else {
+                    badge.classList.remove('level-active');
+                    badge.classList.add('level-inactive');
+                }
+            }
+        }
+
+        function startGame() {
+            startScreen.classList.add('hidden');
+            score = 0;
+            currentLevelIndex = 0;
+            startLevel();
+        }
+
+        function startLevel() {
+            currentQuestionIndex = 0;
+            updateSidebar();
+            gameScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswering = false;
+            const currentLevel = gameData[currentLevelIndex];
+            const currentQ = currentLevel.questions[currentQuestionIndex];
+
+            // Reset Animasi Zoom Out
+            questionWord.classList.remove('animate-zoom-out');
+            void questionWord.offsetWidth; 
+            questionWord.classList.add('animate-zoom-out');
+
+            questionWord.textContent = currentQ.word;
+            optionsContainer.innerHTML = '';
+
+            speakText("Apa lawan kata dari " + currentQ.word + "?");
+            
+            currentQ.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-option w-full py-6 px-4 text-3xl md:text-3xl font-bold shadow-sm opt-${index} animate-pop-in`;
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                btn.style.animationDelay = `${index * 0.1}s`; 
+                optionsContainer.appendChild(btn);
+            });
+
+            timerBar.classList.remove('animate-timer');
+            void timerBar.offsetWidth; 
+            timerBar.classList.add('animate-timer');
+
+            clearTimeout(timerTimeout);
+            timerTimeout = setTimeout(() => {
+                if(!isAnswering) handleTimeOut();
+            }, 5000);
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            if (isAnswering) return;
+            isAnswering = true;
+            
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+            clearTimeout(timerTimeout);
+            timerBar.style.animationPlayState = 'paused';
+
+            const currentLevel = gameData[currentLevelIndex];
+            const correctIndex = currentLevel.questions[currentQuestionIndex].answer;
+            const correctText = currentLevel.questions[currentQuestionIndex].options[correctIndex]; 
+            
+            const buttons = optionsContainer.children;
+
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].disabled = true; 
+                
+                if (i === correctIndex) {
+                    buttons[i].classList.add('correct');
+                    buttons[i].classList.remove('opacity-80'); 
+                    buttons[i].style.transform = "scale(1.05)";
+                    buttons[i].style.zIndex = "10";
+                    buttons[i].style.filter = "none";
+                } else if (i === selectedIndex) {
+                    buttons[i].classList.add('wrong');
+                    buttons[i].style.opacity = "0.5";
+                } else {
+                    buttons[i].classList.add('opacity-20', 'blur-sm');
+                }
+            }
+
+            if (selectedIndex === correctIndex) {
+                btnElement.innerHTML += ' <i class="fas fa-check ml-2"></i>';
+                playSound('correct');
+                score += 10 + (currentLevelIndex * 5);
+                speakText("Benar! " + correctText);
+            } else {
+                btnElement.innerHTML += ' <i class="fas fa-times ml-2"></i>';
+                playSound('wrong');
+                speakText(correctText);
+            }
+
+            setTimeout(nextQuestion, 2500); 
+        }
+
+        function handleTimeOut() {
+            isAnswering = true;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+            playSound('wrong');
+            const currentLevel = gameData[currentLevelIndex];
+            const correctIndex = currentLevel.questions[currentQuestionIndex].answer;
+            const correctText = currentLevel.questions[currentQuestionIndex].options[correctIndex]; 
+
+            const buttons = optionsContainer.children;
+            
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].disabled = true;
+                
+                if (i === correctIndex) {
+                    buttons[i].classList.add('correct');
+                    buttons[i].style.transform = "scale(1.05)";
+                    buttons[i].style.zIndex = "10";
+                } else {
+                    buttons[i].classList.add('opacity-20', 'blur-sm');
+                }
+            }
+            
+            speakText(correctText);
+
+            setTimeout(nextQuestion, 2500);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < gameData[currentLevelIndex].questions.length) {
+                loadQuestion();
+            } else {
+                if (currentLevelIndex < gameData.length - 1) {
+                    currentLevelIndex++;
+                    startLevel();
+                } else {
+                    gameScreen.classList.add('hidden');
+                    showGameOver();
+                }
+            }
+        }
+
+        function showGameOver() {
+            resultScreen.classList.remove('hidden');
+            document.getElementById('final-score').textContent = score;
+            if(score > 80) createConfetti();
+            
+            speakText("Permainan selesai! Skor kamu " + score);
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.backgroundColor = ['#f00','#0f0','#00f','#ff0'][Math.floor(Math.random()*4)];
+                c.style.left = Math.random()*100 + '%';
+                c.style.top = -10 + 'px';
+                c.style.animation = `fall ${2+Math.random()*3}s linear forwards`;
+                document.getElementById('game-container').appendChild(c);
+            }
+        }
+    </script>
+</body>
+</html>
