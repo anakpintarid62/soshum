@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Tebak Bendera Dunia (100 Negara)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <!-- Confetti Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #2980b9 0%, #27ae60 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: #333;
+        }
+
+        #app-container {
+            aspect-ratio: 16/9;
+            width: 90vw;
+            max-width: 1280px;
+            max-height: 90vh;
+            background: #E3F2FD;
+            border-radius: 40px;
+            box-shadow: 0 20px 0 #1565C0, 0 30px 40px rgba(0,0,0,0.5);
+            border: 8px solid #FFF;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sunburst {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-conic-gradient(
+                from 0deg,
+                rgba(33, 150, 243, 0.2) 0deg 20deg,
+                rgba(255, 255, 255, 0.1) 20deg 40deg
+            );
+            transform: translate(-50%, -50%);
+            animation: rotateSunburst 60s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes rotateSunburst {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 3rem;
+            animation: floatUp 15s linear infinite;
+            opacity: 0.4;
+            z-index: 1;
+            bottom: -50px;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes waveFlag {
+            0% { transform: skewY(0deg) rotate(0deg); }
+            25% { transform: skewY(2deg) rotate(1deg); }
+            50% { transform: skewY(0deg) rotate(0deg); }
+            75% { transform: skewY(-2deg) rotate(-1deg); }
+            100% { transform: skewY(0deg) rotate(0deg); }
+        }
+        
+        .flag-animate {
+            animation: popIn 0.5s ease-out, waveFlag 3s ease-in-out infinite 0.5s;
+            transform-origin: center;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes revealAnswer {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .answer-pop {
+            animation: revealAnswer 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .timer-container {
+            width: 50%;
+            height: 48px;
+            background: #e0e0e0;
+            border-radius: 24px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00C853, #FFD600, #D50000);
+            background-size: 200% 100%;
+            width: 100%;
+            transform-origin: left;
+            transition: width 0.1s linear;
+        }
+
+        .map-pattern {
+             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231976D2' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body>
+
+    <div class="floating-icon" style="left: 10%; animation-duration: 12s; animation-delay: 0s;">🌍</div>
+    <div class="floating-icon" style="left: 25%; animation-duration: 15s; animation-delay: 2s;">✈️</div>
+    <div class="floating-icon" style="left: 45%; animation-duration: 10s; animation-delay: 5s;">🗺️</div>
+    <div class="floating-icon" style="left: 60%; animation-duration: 18s; animation-delay: 1s;">🚩</div>
+    <div class="floating-icon" style="left: 80%; animation-duration: 14s; animation-delay: 3s;">🏝️</div>
+    <div class="floating-icon" style="left: 90%; animation-duration: 11s; animation-delay: 6s;">🗽</div>
+
+    <div id="app-container" class="flex flex-col p-6 z-10">
+        
+        <div class="sunburst"></div>
+
+        <!-- Halaman Utama (Intro) -->
+        <div id="start-screen" class="h-full flex flex-col items-center justify-center space-y-6 animate-fade-in z-20 relative">
+            <div class="flex items-center space-x-6">
+                <img src="https://tse2.mm.bing.net/th?q=Globe+Cartoon&w=200&h=200&c=7&rs=1&p=0" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
+                <img src="https://tse2.mm.bing.net/th?q=Flags+of+the+World+Cartoon&w=200&h=200&c=7&rs=1&p=0" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" style="animation-delay: 0.2s">
+                <img src="https://tse2.mm.bing.net/th?q=Travel+Suitcase+Cartoon&w=200&h=200&c=7&rs=1&p=0" class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" style="animation-delay: 0.4s">
+            </div>
+            
+            <div class="text-center space-y-4 bg-white/50 p-6 rounded-[30px] backdrop-blur-sm border-4 border-white">
+                <h1 class="text-6xl font-black text-[#1565C0] tracking-wide" style="text-shadow: 3px 3px 0 #FFF;">
+                    Tebak Bendera!
+                </h1>
+                <p class="text-2xl text-[#1976D2] font-bold">Tantangan 100 Negara Dunia</p>
+            </div>
+
+            <button onclick="startGame()" class="mt-4 px-12 py-5 bg-[#FF9800] text-white border-b-[8px] border-[#F57C00] rounded-full font-black text-3xl shadow-xl hover:bg-[#FFB74D] transition transform hover:scale-105 active:border-b-0 active:translate-y-2">
+                MULAI KELILING! ✈️
+            </button>
+        </div>
+
+        <!-- Halaman Gameplay -->
+        <div id="game-screen" class="hidden h-full flex flex-col z-20 relative">
+            <div class="text-center pt-2 pb-2">
+                <h2 class="text-6xl font-black text-[#1565C0] tracking-wider uppercase drop-shadow-md" style="-webkit-text-stroke: 4px white;">
+                    TEBAK NEGARA
+                </h2>
+            </div>
+
+            <div class="px-6">
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="flex-grow flex flex-row items-center justify-center gap-8 px-6 pb-6">
+                
+                <!-- Card Kiri (Tempat Gambar) -->
+                <div class="w-1/2 flex flex-col items-center justify-center bg-white border-[6px] border-[#29B6F6] border-dashed rounded-[40px] p-6 shadow-sm h-full relative overflow-hidden group">
+                    <div class="absolute inset-0 map-pattern opacity-50"></div>
+                    <div class="relative w-full h-full flex items-center justify-center mb-0 z-10 p-4">
+                        <img id="question-image" src="" alt="Tebak Gambar" class="flag-animate max-h-full max-w-full rounded-xl shadow-xl border-4 border-white object-contain bg-white">
+                    </div>
+                </div>
+
+                <!-- Card Kanan (Tempat Jawaban Muncul) -->
+                <div class="w-1/2 h-full flex items-center justify-center">
+                    <div id="options-container" class="w-full h-full flex items-center justify-center">
+                        <!-- Jawaban akan muncul di sini -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Halaman Hasil -->
+        <div id="result-screen" class="hidden h-full flex flex-col items-center justify-center space-y-6 z-20 relative">
+            <div id="result-emoji" class="text-9xl animate-bounce drop-shadow-xl">🌏</div>
+            
+            <div class="text-center space-y-4 bg-white/80 p-8 rounded-[40px] border-8 border-[#29B6F6] shadow-2xl transform rotate-1">
+                <h2 class="text-5xl font-black text-[#1565C0]">Petualangan Selesai!</h2>
+                <p class="text-2xl font-bold text-[#0277BD]">Terima kasih sudah bermain!</p>
+            </div>
+
+            <div class="flex gap-6 mt-4">
+                <button onclick="restartGame()" class="px-8 py-4 bg-[#4CAF50] border-b-8 border-[#2E7D32] text-white rounded-3xl font-black text-2xl transition hover:-translate-y-1 active:border-b-0 active:translate-y-2">
+                    <i class="fas fa-redo mr-3"></i> Main Lagi
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA 100 BENDERA NEGARA ---
+        const getImage = (keyword) => `https://tse2.mm.bing.net/th?q=Flag+of+${keyword}&w=400&h=300&c=7&rs=1&p=0`;
+
+        const questions = [
+            // ASIA (25)
+            { image: getImage("Indonesia"), correct: "Indonesia" },
+            { image: getImage("Japan"), correct: "Jepang" },
+            { image: getImage("South Korea"), correct: "Korea Selatan" },
+            { image: getImage("China"), correct: "China" },
+            { image: getImage("India"), correct: "India" },
+            { image: getImage("Saudi Arabia"), correct: "Arab Saudi" },
+            { image: getImage("Thailand"), correct: "Thailand" },
+            { image: getImage("Vietnam"), correct: "Vietnam" },
+            { image: getImage("Philippines"), correct: "Filipina" },
+            { image: getImage("Malaysia"), correct: "Malaysia" },
+            { image: getImage("Singapore"), correct: "Singapura" },
+            { image: getImage("Turkey"), correct: "Turki" },
+            { image: getImage("Iran"), correct: "Iran" },
+            { image: getImage("Iraq"), correct: "Irak" },
+            { image: getImage("Pakistan"), correct: "Pakistan" },
+            { image: getImage("Bangladesh"), correct: "Bangladesh" },
+            { image: getImage("Sri Lanka"), correct: "Sri Lanka" },
+            { image: getImage("Nepal"), correct: "Nepal" },
+            { image: getImage("Myanmar"), correct: "Myanmar" },
+            { image: getImage("Cambodia"), correct: "Kamboja" },
+            { image: getImage("Laos"), correct: "Laos" },
+            { image: getImage("Brunei"), correct: "Brunei Darussalam" },
+            { image: getImage("Mongolia"), correct: "Mongolia" },
+            { image: getImage("Qatar"), correct: "Qatar" },
+            { image: getImage("United Arab Emirates"), correct: "Uni Emirat Arab" },
+
+            // EROPA (25)
+            { image: getImage("United Kingdom"), correct: "Inggris Raya" },
+            { image: getImage("France"), correct: "Prancis" },
+            { image: getImage("Germany"), correct: "Jerman" },
+            { image: getImage("Italy"), correct: "Italia" },
+            { image: getImage("Spain"), correct: "Spanyol" },
+            { image: getImage("Netherlands"), correct: "Belanda" },
+            { image: getImage("Portugal"), correct: "Portugal" },
+            { image: getImage("Belgium"), correct: "Belgia" },
+            { image: getImage("Russia"), correct: "Rusia" },
+            { image: getImage("Switzerland"), correct: "Swiss" },
+            { image: getImage("Greece"), correct: "Yunani" },
+            { image: getImage("Sweden"), correct: "Swedia" },
+            { image: getImage("Norway"), correct: "Norwegia" },
+            { image: getImage("Denmark"), correct: "Denmark" },
+            { image: getImage("Finland"), correct: "Finlandia" },
+            { image: getImage("Poland"), correct: "Polandia" },
+            { image: getImage("Ukraine"), correct: "Ukraina" },
+            { image: getImage("Austria"), correct: "Austria" },
+            { image: getImage("Hungary"), correct: "Hungaria" },
+            { image: getImage("Czech Republic"), correct: "Republik Ceko" },
+            { image: getImage("Croatia"), correct: "Kroasia" },
+            { image: getImage("Ireland"), correct: "Irlandia" },
+            { image: getImage("Vatican City"), correct: "Vatikan" },
+            { image: getImage("Monaco"), correct: "Monako" },
+            { image: getImage("Iceland"), correct: "Islandia" },
+
+            // AMERIKA (20)
+            { image: getImage("United States"), correct: "Amerika Serikat" },
+            { image: getImage("Canada"), correct: "Kanada" },
+            { image: getImage("Brazil"), correct: "Brasil" },
+            { image: getImage("Argentina"), correct: "Argentina" },
+            { image: getImage("Mexico"), correct: "Meksiko" },
+            { image: getImage("Colombia"), correct: "Kolombia" },
+            { image: getImage("Peru"), correct: "Peru" },
+            { image: getImage("Chile"), correct: "Chili" },
+            { image: getImage("Jamaica"), correct: "Jamaika" },
+            { image: getImage("Uruguay"), correct: "Uruguay" },
+            { image: getImage("Venezuela"), correct: "Venezuela" },
+            { image: getImage("Ecuador"), correct: "Ekuador" },
+            { image: getImage("Bolivia"), correct: "Bolivia" },
+            { image: getImage("Paraguay"), correct: "Paraguay" },
+            { image: getImage("Cuba"), correct: "Kuba" },
+            { image: getImage("Panama"), correct: "Panama" },
+            { image: getImage("Costa Rica"), correct: "Kosta Rika" },
+            { image: getImage("Guatemala"), correct: "Guatemala" },
+            { image: getImage("Honduras"), correct: "Honduras" },
+            { image: getImage("El Salvador"), correct: "El Salvador" },
+
+            // AFRIKA (25)
+            { image: getImage("Egypt"), correct: "Mesir" },
+            { image: getImage("South Africa"), correct: "Afrika Selatan" },
+            { image: getImage("Nigeria"), correct: "Nigeria" },
+            { image: getImage("Morocco"), correct: "Maroko" },
+            { image: getImage("Kenya"), correct: "Kenya" },
+            { image: getImage("Ghana"), correct: "Ghana" },
+            { image: getImage("Ethiopia"), correct: "Ethiopia" },
+            { image: getImage("Senegal"), correct: "Senegal" },
+            { image: getImage("Cameroon"), correct: "Kamerun" },
+            { image: getImage("Ivory Coast"), correct: "Pantai Gading" },
+            { image: getImage("Algeria"), correct: "Aljazair" },
+            { image: getImage("Tunisia"), correct: "Tunisia" },
+            { image: getImage("Tanzania"), correct: "Tanzania" },
+            { image: getImage("Uganda"), correct: "Uganda" },
+            { image: getImage("Zimbabwe"), correct: "Zimbabwe" },
+            { image: getImage("Madagascar"), correct: "Madagaskar" },
+            { image: getImage("Mali"), correct: "Mali" },
+            { image: getImage("Somalia"), correct: "Somalia" },
+            { image: getImage("Sudan"), correct: "Sudan" },
+            { image: getImage("Angola"), correct: "Angola" },
+            { image: getImage("Republic of the Congo"), correct: "Kongo" },
+            { image: getImage("Libya"), correct: "Libya" },
+            { image: getImage("Rwanda"), correct: "Rwanda" },
+            { image: getImage("Zambia"), correct: "Zambia" },
+            { image: getImage("Mozambique"), correct: "Mozambik" },
+            
+            // OCEANIA (5)
+            { image: getImage("Australia"), correct: "Australia" },
+            { image: getImage("New Zealand"), correct: "Selandia Baru" },
+            { image: getImage("Papua New Guinea"), correct: "Papua Nugini" },
+            { image: getImage("Fiji"), correct: "Fiji" },
+            { image: getImage("Palestine"), correct: "Palestina" }
+        ];
+
+        // --- Variabel Game ---
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+        let timerInterval;
+        let readingTimeout;
+        const THINKING_TIME = 3; // 3 Detik Berpikir
+        const READING_TIME = 1; 
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionImage = document.getElementById('question-image');
+        const optionsContainer = document.getElementById('options-container');
+        const finalScoreEl = document.getElementById('final-score');
+        const appContainer = document.getElementById('app-container');
+        const timerBar = document.getElementById('timer-bar');
+        
+        // --- Fungsi Audio ---
+        function speakClue(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                const voices = window.speechSynthesis.getVoices();
+                const googleVoice = voices.find(v => v.lang === 'id-ID' && v.name.includes('Google'));
+                if (googleVoice) utterance.voice = googleVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function stopSpeaking() {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        function playSound(type) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'correct') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'pop') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'tick') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(1000, now);
+                    gain.gain.setValueAtTime(0.3, now); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                }
+            } catch (e) {}
+        }
+
+        // --- Logika Game ---
+        function startGame() {
+            if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+            shuffledQuestions = questions.sort(() => 0.5 - Math.random()); 
+            currentQuestionIndex = 0;
+            
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            loadQuestion();
+            playSound('pop');
+        }
+
+        function loadQuestion() {
+            clearInterval(timerInterval);
+            clearTimeout(readingTimeout);
+            stopSpeaking(); 
+            
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Animasi Gambar (Flag Waving)
+            questionImage.classList.remove('flag-animate');
+            void questionImage.offsetWidth; 
+            questionImage.classList.add('flag-animate');
+            
+            // Reset Bar Timer
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#00C853'; 
+
+            // Set Gambar
+            questionImage.src = q.image;
+            
+            // Reset Container Jawaban (Tanda Tanya Besar & Merah)
+            optionsContainer.innerHTML = `
+                <div class="w-full h-full flex items-center justify-center">
+                    <span class="text-[18rem] font-black text-[#D32F2F] animate-pulse drop-shadow-2xl leading-none" style="filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));">?</span>
+                </div>
+            `;
+
+            readingTimeout = setTimeout(() => {
+                startThinkingTimer();
+            }, READING_TIME * 1000);
+        }
+
+        function startThinkingTimer() {
+            playSound('pop');
+            let timeLeft = THINKING_TIME;
+            const updateRate = 50; 
+            const totalSteps = (THINKING_TIME * 1000) / updateRate;
+            let currentStep = 0;
+            let lastTickStep = 0;
+
+            timerInterval = setInterval(() => {
+                currentStep++;
+                const percentage = 100 - ((currentStep / totalSteps) * 100);
+                timerBar.style.width = `${percentage}%`;
+                
+                let tickInterval = 20; 
+                
+                if (percentage < 30) {
+                    timerBar.style.backgroundColor = '#D50000'; 
+                    tickInterval = 4; 
+                } else if (percentage < 60) {
+                    timerBar.style.backgroundColor = '#FFD600'; 
+                    tickInterval = 10; 
+                } else {
+                    timerBar.style.backgroundColor = '#00C853'; 
+                    tickInterval = 20; 
+                }
+
+                if (currentStep - lastTickStep >= tickInterval) {
+                    playSound('tick');
+                    lastTickStep = currentStep;
+                }
+
+                if (currentStep >= totalSteps) {
+                    clearInterval(timerInterval);
+                    revealAnswer(); 
+                }
+            }, updateRate);
+        }
+
+        function revealAnswer() {
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Tampilkan Jawaban dengan Animasi
+            optionsContainer.innerHTML = `
+                <div class="w-full h-full flex items-center justify-center answer-pop">
+                    <h2 class="text-6xl font-black text-[#1565C0] text-center drop-shadow-md bg-white px-8 py-6 rounded-3xl border-4 border-[#29B6F6] shadow-xl transform rotate-2">
+                        ${q.correct}
+                    </h2>
+                </div>
+            `;
+
+            // Suara Jawaban Langsung
+            speakClue(q.correct);
+            playSound('correct');
+            fireConfetti();
+
+            setTimeout(nextQuestion, 3000); 
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function fireConfetti(long = false) {
+            var duration = 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+            var random = function(min, max) { return Math.random() * (max - min) + min; }
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#0288D1', '#FFC107', '#00C853', '#FFFFFF'] }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#0288D1', '#FFC107', '#00C853', '#FFFFFF'] }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
