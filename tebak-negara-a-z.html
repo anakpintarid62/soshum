@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Tebak Negara (Teka-Teki Huruf)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <!-- Confetti Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            /* Background Misterius (Ungu ke Biru) */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: #333;
+        }
+
+        /* Container Kartu Besar (16:9) */
+        #app-container {
+            aspect-ratio: 16/9;
+            width: 90vw;
+            max-width: 177.78vh; 
+            max-height: 90vh;
+            background: #EDE7F6; /* Ungu Pucat */
+            border-radius: 40px;
+            box-shadow: 0 20px 0 #4527A0, 0 30px 40px rgba(0,0,0,0.5); /* Efek 3D Ungu Tua */
+            border: 8px solid #FFF;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Sunburst Background (Ungu Transparan) */
+        .sunburst {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-conic-gradient(
+                from 0deg,
+                rgba(124, 77, 255, 0.2) 0deg 20deg,
+                rgba(255, 255, 255, 0.1) 20deg 40deg
+            );
+            transform: translate(-50%, -50%);
+            animation: rotateSunburst 60s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes rotateSunburst {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Dekorasi Ikon Melayang */
+        .floating-icon {
+            position: absolute;
+            font-size: 3rem;
+            animation: floatUp 15s linear infinite;
+            opacity: 0.4;
+            z-index: 1;
+            bottom: -50px;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Animasi Clue Huruf */
+        @keyframes pulseText {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .clue-text {
+            animation: pulseText 1s infinite;
+            letter-spacing: 0.1em;
+        }
+
+        /* Animasi Jawaban Muncul */
+        @keyframes revealAnswer {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .answer-pop {
+            animation: revealAnswer 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* Timer Bar Animation */
+        .timer-container {
+            width: 50%;
+            height: 48px;
+            background: #e0e0e0;
+            border-radius: 24px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00E676, #FFEA00, #FF1744);
+            background-size: 200% 100%;
+            width: 100%;
+            transform-origin: left;
+            transition: width 0.1s linear;
+        }
+
+        /* Background Konten Kiri (Pola Huruf) */
+        .letter-pattern {
+             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' fill='%23673AB7' fill-opacity='0.1'%3E?%3C/text%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dekorasi Floating Icons -->
+    <div class="floating-icon" style="left: 10%; animation-duration: 12s; animation-delay: 0s;">🔤</div>
+    <div class="floating-icon" style="left: 25%; animation-duration: 15s; animation-delay: 2s;">❓</div>
+    <div class="floating-icon" style="left: 45%; animation-duration: 10s; animation-delay: 5s;">🗺️</div>
+    <div class="floating-icon" style="left: 60%; animation-duration: 18s; animation-delay: 1s;">🅰️</div>
+    <div class="floating-icon" style="left: 80%; animation-duration: 14s; animation-delay: 3s;">🌏</div>
+    <div class="floating-icon" style="left: 90%; animation-duration: 11s; animation-delay: 6s;">🚩</div>
+
+    <div id="app-container" class="flex flex-col p-6 z-10">
+        
+        <!-- Sunburst Background -->
+        <div class="sunburst"></div>
+
+        <!-- Halaman Utama (Intro) -->
+        <div id="start-screen" class="h-full flex flex-col items-center justify-center space-y-6 animate-fade-in z-20 relative">
+            <div class="flex items-center space-x-6">
+                <div class="text-8xl font-black text-[#673AB7] bg-white p-4 rounded-xl shadow-lg border-4 border-[#9575CD]">?</div>
+                <div class="text-8xl font-black text-[#673AB7] bg-white p-4 rounded-xl shadow-lg border-4 border-[#9575CD]">A</div>
+                <div class="text-8xl font-black text-[#673AB7] bg-white p-4 rounded-xl shadow-lg border-4 border-[#9575CD]">Z</div>
+            </div>
+            
+            <div class="text-center space-y-4 bg-white/50 p-6 rounded-[30px] backdrop-blur-sm border-4 border-white">
+                <h1 class="text-6xl font-black text-[#4527A0] tracking-wide" style="text-shadow: 3px 3px 0 #FFF;">
+                    Tebak Kata Negara!
+                </h1>
+                <p class="text-2xl text-[#512DA8] font-bold">Lengkapi Huruf yang Hilang (94 Soal)</p>
+            </div>
+
+            <button onclick="startGame()" class="mt-4 px-12 py-5 bg-[#7E57C2] text-white border-b-[8px] border-[#5E35B1] rounded-full font-black text-3xl shadow-xl hover:bg-[#9575CD] transition transform hover:scale-105 active:border-b-0 active:translate-y-2">
+                MULAI MAIN! 🎮
+            </button>
+        </div>
+
+        <!-- Halaman Gameplay -->
+        <div id="game-screen" class="hidden h-full flex flex-col z-20 relative">
+            <div class="text-center pt-2 pb-2">
+                <h2 class="text-6xl font-black text-[#4527A0] tracking-wider uppercase drop-shadow-md" style="-webkit-text-stroke: 4px white;">
+                    TEBAK NEGARA
+                </h2>
+            </div>
+
+            <div class="px-6">
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Area Soal (Tengah) -->
+            <div class="flex-grow flex flex-col items-center justify-center relative">
+                
+                <!-- Pola Background -->
+                <div class="absolute inset-0 letter-pattern opacity-30 pointer-events-none"></div>
+
+                <!-- Container Clue (Teks Besar) -->
+                <div id="clue-container" class="w-full max-w-4xl bg-white border-[6px] border-[#7E57C2] border-dashed rounded-[40px] p-12 shadow-xl flex flex-col items-center justify-center min-h-[300px] transition-all duration-300">
+                    <p class="text-4xl md:text-5xl font-black mb-6 uppercase tracking-widest bg-gradient-to-r from-purple-500 to-indigo-800 bg-clip-text text-transparent drop-shadow-sm">
+                        Negara Apakah Aku?
+                    </p>
+                    <div id="question-text" class="clue-text text-6xl md:text-8xl font-black text-[#4527A0] text-center leading-tight break-words w-full">
+                        _ N D _ N _ S _ _
+                    </div>
+                </div>
+
+                <!-- Container Jawaban (Bendera + Nama) - Awalnya Sembunyi -->
+                <div id="answer-container" class="hidden absolute inset-0 w-full h-full flex flex-col items-center justify-center z-20">
+                     <div class="bg-white p-8 rounded-[40px] border-8 border-[#00E676] shadow-2xl flex flex-col items-center answer-pop">
+                        <img id="answer-flag" src="" class="w-80 h-auto rounded-lg shadow-md border-4 border-gray-200 mb-6 object-cover">
+                        <h2 id="answer-text" class="text-6xl font-black text-[#2E7D32] uppercase text-center drop-shadow-sm mt-4">
+                            INDONESIA
+                        </h2>
+                     </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Halaman Hasil -->
+        <div id="result-screen" class="hidden h-full flex flex-col items-center justify-center space-y-6 z-20 relative">
+            <div id="result-emoji" class="text-9xl animate-bounce drop-shadow-xl">🎓</div>
+            
+            <div class="text-center space-y-4 bg-white/80 p-8 rounded-[40px] border-8 border-[#7E57C2] shadow-2xl transform rotate-1">
+                <h2 class="text-5xl font-black text-[#4527A0]">Permainan Selesai!</h2>
+                <p class="text-2xl font-bold text-[#512DA8]">Terima kasih sudah bermain!</p>
+            </div>
+
+            <div class="flex gap-6 mt-4">
+                <button onclick="restartGame()" class="px-8 py-4 bg-[#00E676] border-b-8 border-[#00C853] text-white rounded-3xl font-black text-2xl transition hover:-translate-y-1 active:border-b-0 active:translate-y-2">
+                    <i class="fas fa-redo mr-3"></i> Main Lagi
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA 94 NEGARA (Sesuai List Anda) ---
+        const getImage = (keyword) => `https://tse2.mm.bing.net/th?q=Flag+of+${keyword}&w=400&h=300&c=7&rs=1&p=0`;
+
+        const questions = [
+            { name: "ALJAZAIR", image: getImage("Algeria") },
+            { name: "AMERIKA SERIKAT", image: getImage("United States") },
+            { name: "ARGENTINA", image: getImage("Argentina") },
+            { name: "AUSTRALIA", image: getImage("Australia") },
+            { name: "BAHRAIN", image: getImage("Bahrain") },
+            { name: "BELGIA", image: getImage("Belgium") },
+            { name: "BRASIL", image: getImage("Brazil") },
+            { name: "BRUNEI DARUSSALAM", image: getImage("Brunei") },
+            { name: "BULGARIA", image: getImage("Bulgaria") },
+            { name: "CHILI", image: getImage("Chile") },
+            { name: "DENMARK", image: getImage("Denmark") },
+            { name: "EKUADOR", image: getImage("Ecuador") },
+            { name: "ESTONIA", image: getImage("Estonia") },
+            { name: "FIJI", image: getImage("Fiji") },
+            { name: "FILIPINA", image: getImage("Philippines") },
+            { name: "FINLANDIA", image: getImage("Finland") },
+            { name: "GEORGIA", image: getImage("Georgia Country") },
+            { name: "GHANA", image: getImage("Ghana") },
+            { name: "HONGARIA", image: getImage("Hungary") },
+            { name: "INDIA", image: getImage("India") },
+            { name: "INDONESIA", image: getImage("Indonesia") },
+            { name: "INGGRIS", image: getImage("United Kingdom") },
+            { name: "IRLANDIA", image: getImage("Ireland") },
+            { name: "ISLANDIA", image: getImage("Iceland") },
+            { name: "ISRAEL", image: getImage("Israel") },
+            { name: "ITALIA", image: getImage("Italy") },
+            { name: "JEPANG", image: getImage("Japan") },
+            { name: "JERMAN", image: getImage("Germany") },
+            { name: "KAMERUN", image: getImage("Cameroon") },
+            { name: "KANADA", image: getImage("Canada") },
+            { name: "KIRGIZSTAN", image: getImage("Kyrgyzstan") },
+            { name: "KOLOMBIA", image: getImage("Colombia") },
+            { name: "KONGO", image: getImage("Republic of the Congo") },
+            { name: "KOREA UTARA", image: getImage("North Korea") },
+            { name: "KROASIA", image: getImage("Croatia") },
+            { name: "KUWAIT", image: getImage("Kuwait") },
+            { name: "KIRIBATI", image: getImage("Kiribati") },
+            { name: "LAOS", image: getImage("Laos") },
+            { name: "LEBANON", image: getImage("Lebanon") },
+            { name: "LIBYA", image: getImage("Libya") },
+            { name: "LITUANIA", image: getImage("Lithuania") },
+            { name: "LUKSEMBURG", image: getImage("Luxembourg") },
+            { name: "MADAGASKAR", image: getImage("Madagascar") },
+            { name: "MALAYSIA", image: getImage("Malaysia") },
+            { name: "MAROKO", image: getImage("Morocco") },
+            { name: "MEKSIKO", image: getImage("Mexico") },
+            { name: "MESIR", image: getImage("Egypt") },
+            { name: "MONGOLIA", image: getImage("Mongolia") },
+            { name: "NAMIBIA", image: getImage("Namibia") },
+            { name: "NEPAL", image: getImage("Nepal") },
+            { name: "NIGERIA", image: getImage("Nigeria") },
+            { name: "NORWEGIA", image: getImage("Norway") },
+            { name: "OMAN", image: getImage("Oman") },
+            { name: "PAKISTAN", image: getImage("Pakistan") },
+            { name: "PALESTINA", image: getImage("Palestine") },
+            { name: "PANAMA", image: getImage("Panama") },
+            { name: "PAPUA NUGINI", image: getImage("Papua New Guinea") },
+            { name: "PARAGUAY", image: getImage("Paraguay") },
+            { name: "PERU", image: getImage("Peru") },
+            { name: "POLANDIA", image: getImage("Poland") },
+            { name: "PORTUGAL", image: getImage("Portugal") },
+            { name: "PRANCIS", image: getImage("France") },
+            { name: "QATAR", image: getImage("Qatar") },
+            { name: "REPUBLIK CEKO", image: getImage("Czech Republic") },
+            { name: "RUMANIA", image: getImage("Romania") },
+            { name: "RUSIA", image: getImage("Russia") },
+            { name: "SELANDIA BARU", image: getImage("New Zealand") },
+            { name: "SERBIA", image: getImage("Serbia") },
+            { name: "SINGAPURA", image: getImage("Singapore") },
+            { name: "SOMALIA", image: getImage("Somalia") },
+            { name: "SPANYOL", image: getImage("Spain") },
+            { name: "SRI LANKA", image: getImage("Sri Lanka") },
+            { name: "SUDAN", image: getImage("Sudan") },
+            { name: "SURIAH", image: getImage("Syria") },
+            { name: "SURINAME", image: getImage("Suriname") },
+            { name: "SWEDIA", image: getImage("Sweden") },
+            { name: "SWISS", image: getImage("Switzerland") },
+            { name: "THAILAND", image: getImage("Thailand") },
+            { name: "TIMOR LESTE", image: getImage("East Timor") },
+            { name: "TUNISIA", image: getImage("Tunisia") },
+            { name: "TURKI", image: getImage("Turkey") },
+            { name: "TURKMENISTAN", image: getImage("Turkmenistan") },
+            { name: "UKRAINA", image: getImage("Ukraine") },
+            { name: "UNI EMIRAT ARAB", image: getImage("United Arab Emirates") },
+            { name: "URUGUAY", image: getImage("Uruguay") },
+            { name: "UZBEKISTAN", image: getImage("Uzbekistan") },
+            { name: "VATIKAN", image: getImage("Vatican City") },
+            { name: "VIETNAM", image: getImage("Vietnam") },
+            { name: "YAMAN", image: getImage("Yemen") },
+            { name: "YORDANIA", image: getImage("Jordan") },
+            { name: "YUNANI", image: getImage("Greece") },
+            { name: "ZAMBIA", image: getImage("Zambia") },
+            { name: "ZIMBABWE", image: getImage("Zimbabwe") }
+        ];
+
+        // --- Helper Function: Hide Vowels ---
+        function getClueText(name) {
+            // Ganti A, I, U, E, O dengan _ (Garis Bawah)
+            return name.replace(/[AIUEO]/g, '_ ').split('').join(' ');
+        }
+
+        // --- Variabel Game ---
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+        let timerInterval;
+        let readingTimeout;
+        const THINKING_TIME = 5; // 5 Detik Berpikir
+        const READING_TIME = 1; 
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const clueContainer = document.getElementById('clue-container');
+        const answerContainer = document.getElementById('answer-container');
+        const answerFlag = document.getElementById('answer-flag');
+        const answerTextLabel = document.getElementById('answer-text');
+        const timerBar = document.getElementById('timer-bar');
+        
+        // --- Fungsi Audio ---
+        function speakClue(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                const voices = window.speechSynthesis.getVoices();
+                const googleVoice = voices.find(v => v.lang === 'id-ID' && v.name.includes('Google'));
+                if (googleVoice) utterance.voice = googleVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function stopSpeaking() {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
+
+        function playSound(type) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'correct') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                } else if (type === 'pop') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'tick') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.setValueAtTime(1000, now);
+                    gain.gain.setValueAtTime(0.3, now); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                }
+            } catch (e) {}
+        }
+
+        // --- Logika Game ---
+        function startGame() {
+            if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+            // PENTING: Soal berurutan sesuai list, tidak diacak
+            shuffledQuestions = questions; 
+            currentQuestionIndex = 0;
+            
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            loadQuestion();
+            playSound('pop');
+        }
+
+        function loadQuestion() {
+            clearInterval(timerInterval);
+            clearTimeout(readingTimeout);
+            
+            // Reset Tampilan
+            clueContainer.classList.remove('hidden'); // Tampilkan Clue
+            answerContainer.classList.add('hidden'); // Sembunyikan Jawaban
+            
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Reset Bar Timer
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#00E676'; 
+
+            // Set Clue Text (Sensor Vokal)
+            questionText.textContent = getClueText(q.name);
+            
+            readingTimeout = setTimeout(() => {
+                startThinkingTimer();
+            }, READING_TIME * 1000);
+        }
+
+        function startThinkingTimer() {
+            playSound('pop');
+            let timeLeft = THINKING_TIME;
+            const updateRate = 50; 
+            const totalSteps = (THINKING_TIME * 1000) / updateRate;
+            let currentStep = 0;
+            let lastTickStep = 0;
+
+            timerInterval = setInterval(() => {
+                currentStep++;
+                const percentage = 100 - ((currentStep / totalSteps) * 100);
+                timerBar.style.width = `${percentage}%`;
+                
+                let tickInterval = 20; 
+                
+                if (percentage < 30) {
+                    timerBar.style.backgroundColor = '#FF1744'; // Merah
+                    tickInterval = 4; 
+                } else if (percentage < 60) {
+                    timerBar.style.backgroundColor = '#FFEA00'; // Kuning
+                    tickInterval = 10; 
+                } else {
+                    timerBar.style.backgroundColor = '#00E676'; // Hijau
+                    tickInterval = 20; 
+                }
+
+                if (currentStep - lastTickStep >= tickInterval) {
+                    playSound('tick');
+                    lastTickStep = currentStep;
+                }
+
+                if (currentStep >= totalSteps) {
+                    clearInterval(timerInterval);
+                    revealAnswer(); 
+                }
+            }, updateRate);
+        }
+
+        function revealAnswer() {
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Sembunyikan Clue, Tampilkan Jawaban
+            clueContainer.classList.add('hidden');
+            answerContainer.classList.remove('hidden');
+
+            // Set Konten Jawaban
+            answerFlag.src = q.image;
+            answerTextLabel.textContent = q.name;
+
+            // Suara & Efek
+            speakClue(q.name);
+            playSound('correct');
+            fireConfetti();
+
+            setTimeout(nextQuestion, 4000); // Tampilkan jawaban selama 4 detik
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function fireConfetti(long = false) {
+            var duration = 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+            var random = function(min, max) { return Math.random() * (max - min) + min; }
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#7B1FA2', '#00E676', '#FFEA00', '#FFFFFF'] }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#7B1FA2', '#00E676', '#FFEA00', '#FFFFFF'] }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
