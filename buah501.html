@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis Cari Buah Aneh</title>
+    <title>Kuis Cari Buah Aneh (Hard Mode)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
@@ -23,13 +23,13 @@
         /* FRAME 16:9 - Layout Kuis TV/YouTube */
         #game-frame {
             width: 100%;
-            max-width: 1280px; /* Standar 720p/1080p aspect ratio fit */
+            max-width: 1280px;
             aspect-ratio: 16/9;
-            background: radial-gradient(circle at center, #4c1d95 0%, #2e1065 100%);
+            background: radial-gradient(circle at center, #312e81 0%, #0f172a 100%);
             position: relative;
             overflow: hidden;
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            border: 8px solid #4c1d95;
+            border: 8px solid #312e81;
             display: flex;
             flex-direction: column;
         }
@@ -43,7 +43,21 @@
 
         .anim-pop { animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
         
-        /* ANIMASI JEDAG JEDUG (MERAH) */
+        /* ANIMASI KONTAINER BERGOYANG */
+        @keyframes swayBox {
+            0% { transform: rotate(0deg) translateY(0px); }
+            25% { transform: rotate(0.5deg) translateY(-2px); }
+            50% { transform: rotate(0deg) translateY(0px); }
+            75% { transform: rotate(-0.5deg) translateY(2px); }
+            100% { transform: rotate(0deg) translateY(0px); }
+        }
+
+        .container-dynamic {
+            animation: swayBox 8s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        /* ANIMASI REVEAL (JAWABAN BENAR) */
         @keyframes jedagJedug {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); border-color: rgba(239, 68, 68, 0.8); }
             50% { transform: scale(1.2); box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0); border-color: rgba(239, 68, 68, 0); }
@@ -53,10 +67,62 @@
         .reveal-odd {
             border: 4px solid #ef4444 !important; /* Merah */
             border-radius: 50%;
-            animation: jedagJedug 0.8s infinite;
+            animation: jedagJedug 0.8s infinite !important;
             z-index: 50;
             background-color: white !important;
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+        }
+
+        /* CSS VARIATIONS (SHAPE/COLOR) */
+        .emoji-span {
+            display: inline-block;
+            transition: transform 0.3s;
+            position: relative; /* Untuk positioning daun */
+            z-index: 10;
+        }
+
+        /* 1. Miring */
+        .variant-tilt-hard { transform: rotate(30deg); }
+        /* 2. Kecil */
+        .variant-scale-hard { transform: scale(0.65); }
+        /* 3. Penyek */
+        .variant-skew-hard { transform: skew(-20deg); }
+        /* 4. Pudar */
+        .variant-pale-hard { filter: saturate(0.4) opacity(0.85); }
+        /* 5. Terang */
+        .variant-bright-hard { filter: brightness(1.4); }
+
+        /* LEAF OVERLAYS (Sistem Daun) */
+        .leaf-extra {
+            position: absolute;
+            font-size: 0.6em; /* Lebih kecil dari buah */
+            pointer-events: none;
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+            z-index: 20;
+        }
+        
+        /* Posisi Daun 1 (Kanan Atas) */
+        .leaf-pos-1 { top: -10px; right: -10px; transform: rotate(15deg); }
+        
+        /* Posisi Daun 2 (Kiri Atas - untuk skenario 2 daun) */
+        .leaf-pos-2 { top: -5px; left: -10px; transform: rotate(-45deg) scaleX(-1); }
+
+        /* ANIMASI BACKGROUND MELAYANG */
+        @keyframes floatUp {
+            0% { transform: translateY(120%) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-120%) rotate(360deg); opacity: 0; }
+        }
+
+        .floating-fruit {
+            position: absolute;
+            bottom: -50px;
+            animation: floatUp linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: grayscale(30%);
+            opacity: 0.1;
         }
 
         /* ITEM STYLING */
@@ -68,7 +134,9 @@
             justify-content: center;
             border-radius: 12px;
             aspect-ratio: 1;
-            border: 2px solid transparent; 
+            border: 2px solid transparent;
+            z-index: 10;
+            position: relative;
         }
         .grid-item:hover {
             transform: scale(1.15);
@@ -79,9 +147,17 @@
             transform: scale(0.9);
         }
 
-        /* TIMER BAR */
+        /* TIMER BAR VERTICAL */
         .timer-progress {
-            transition: width 1s linear;
+            transition: height 1s linear;
+        }
+
+        /* TIMER EMOJI INDICATOR */
+        .timer-indicator {
+            transition: bottom 1s linear;
+            z-index: 20;
+            left: 50%;
+            transform: translate(-50%, 50%);
         }
     </style>
 </head>
@@ -90,63 +166,63 @@
     <div id="game-frame">
         
         <!-- INTRO SCREEN -->
-        <div id="start-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-indigo-900/95 backdrop-blur-sm text-white">
+        <div id="start-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-indigo-950/95 backdrop-blur-sm text-white">
             <div class="flex gap-4 mb-6 text-7xl animate-bounce">
-                <span>🍎</span><span>🍎</span><span>🍏</span><span>🍎</span>
+                <span>🔥</span><span>🍎</span><span>🍃</span><span>🍌</span>
             </div>
-            <h1 class="text-6xl font-bold mb-2 uppercase tracking-wider text-yellow-400 drop-shadow-lg text-center">Cari Buah Aneh!</h1>
-            <p class="text-2xl mb-8 font-semibold text-blue-200">Temukan 1 buah berbeda di antara 50 buah!</p>
-            <button onclick="startGame()" class="bg-green-500 hover:bg-green-400 text-white text-3xl font-bold py-4 px-12 rounded-full border-b-8 border-green-700 active:border-b-0 active:translate-y-2 transition-all shadow-xl">
-                MULAI
+            <h1 class="text-6xl font-bold mb-2 uppercase tracking-wider text-green-400 drop-shadow-lg text-center" style="text-shadow: 2px 2px 0px #064e3b;">TEBAK DAUN</h1>
+            <p class="text-2xl mb-8 font-semibold text-gray-300">Cari buah dengan jumlah daun yang berbeda!</p>
+            <button onclick="startGame()" class="bg-green-600 hover:bg-green-500 text-white text-3xl font-bold py-4 px-12 rounded-full border-b-8 border-green-800 active:border-b-0 active:translate-y-2 transition-all shadow-xl">
+                MULAI TANTANGAN
             </button>
         </div>
 
         <!-- GAMEPLAY SCREEN -->
         <div id="game-screen" class="flex flex-col h-full w-full hidden">
             
-            <!-- TOP BAR (HEADER) -->
-            <div class="flex justify-between items-center px-8 py-3 bg-black/20 backdrop-blur-md border-b border-white/10 shrink-0">
-                <!-- Level Info -->
-                <div class="flex items-center gap-3">
-                    <div class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-2xl border-b-4 border-blue-800 shadow-lg">
-                        LEVEL <span id="q-current">1</span>
-                    </div>
-                </div>
-
-                <!-- Score -->
-                <div class="bg-yellow-500 text-yellow-900 px-6 py-2 rounded-xl font-bold text-2xl border-b-4 border-yellow-700 shadow-lg min-w-[150px] text-center">
-                    <span id="score-display">0</span>
-                </div>
+            <!-- TOP BAR (HEADER) - TEXT REMOVED, ANIMATION ADDED -->
+            <div class="relative w-full h-24 bg-black/30 backdrop-blur-md border-b border-white/10 shrink-0 overflow-hidden">
+                <!-- Header Floating Fruits Container -->
+                <div id="header-floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full"></div>
+                <!-- Konten kosong, hanya animasi -->
             </div>
 
-            <!-- MAIN CONTENT (CENTERED) -->
-            <div class="flex-1 w-full flex flex-col items-center justify-center p-4 relative">
+            <!-- MAIN CONTENT -->
+            <div class="flex-1 w-full flex flex-row items-stretch justify-center p-6 gap-6 relative max-w-6xl mx-auto">
                 
                 <!-- White Container (BUAH) -->
-                <!-- Ukuran fixed height/width relative agar pas di layar 16:9 tanpa scrolling -->
-                <div class="bg-white rounded-[2rem] p-4 md:p-6 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)] w-full max-w-5xl border-8 border-white/20 relative z-10 flex items-center justify-center mb-4">
+                <div class="flex-1 bg-white rounded-[2rem] p-4 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)] border-8 border-white/20 relative z-10 flex items-center justify-center overflow-hidden container-dynamic">
                     
+                    <!-- Background Floating Fruits Container -->
+                    <div id="floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full"></div>
+
                     <!-- The Grid Container -->
-                    <div id="emoji-grid" class="grid grid-cols-10 gap-1 md:gap-3 w-full">
+                    <div id="emoji-grid" class="grid grid-cols-10 gap-1 md:gap-3 w-full relative z-10">
                         <!-- Items generated by JS -->
                     </div>
 
                 </div>
 
-                <!-- Timer Bar (DIBAWAH KONTAINER BUAH) -->
-                <div class="w-full max-w-5xl mt-2 px-2">
-                    <div class="flex justify-between text-white/90 font-bold mb-1 uppercase text-xl tracking-wider drop-shadow-md">
-                        <span class="flex items-center"><i class="fas fa-stopwatch mr-2 text-yellow-400"></i> Sisa Waktu</span>
-                        <span id="timer-text" class="text-yellow-400 text-2xl">10s</span>
-                    </div>
-                    <!-- Timer Container styling -->
-                    <div class="w-full h-10 bg-gray-900/50 rounded-full overflow-hidden border-2 border-white/30 shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-                        <div id="timer-bar" class="timer-progress h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 w-full shadow-[0_0_20px_rgba(74,222,128,0.5)]"></div>
+                <!-- Timer Bar (VERTICAL - Kanan) -->
+                <div class="w-20 relative flex flex-col items-center">
+                    <!-- Container Bar -->
+                    <div class="w-full h-full bg-gray-900/50 rounded-full border-4 border-white/30 shadow-[0_0_20px_rgba(0,0,0,0.4)] relative overflow-visible">
+                        
+                        <!-- Inner Container (Clipped Progress Bar) -->
+                        <div class="absolute bottom-0 left-0 w-full h-full rounded-full overflow-hidden">
+                            <div id="timer-bar" class="timer-progress absolute bottom-0 left-0 w-full bg-gradient-to-t from-green-400 via-yellow-400 to-red-500 shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]" style="height: 100%;"></div>
+                        </div>
+
+                        <!-- Emoji Indicator -->
+                        <div id="timer-indicator" class="timer-indicator absolute text-5xl filter drop-shadow-lg" style="bottom: 100%;">
+                            🍎
+                        </div>
+
                     </div>
                 </div>
 
-                <!-- Feedback Overlay (Centered on Screen) -->
-                <div id="feedback-overlay" class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                <!-- Feedback Overlay -->
+                <div id="feedback-overlay" class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-[2rem]">
                     <div id="feedback-text" class="text-8xl font-bold text-white uppercase drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-bounce text-center leading-tight">
                         KETEMU!
                     </div>
@@ -159,8 +235,8 @@
         <div id="result-screen" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-purple-900 text-white">
             <div class="bg-white/10 p-12 rounded-3xl backdrop-blur-md border border-white/20 text-center shadow-2xl max-w-2xl w-full animate-pop">
                 <div class="text-yellow-400 text-8xl mb-4">🏆</div>
-                <h2 class="text-5xl font-bold mb-2">PERMAINAN SELESAI</h2>
-                <p class="text-xl text-purple-200 mb-8">Mata kamu tajam juga ya!</p>
+                <h2 class="text-5xl font-bold mb-2">HASIL AKHIR</h2>
+                <p class="text-xl text-purple-200 mb-8">Tantangan selesai!</p>
                 
                 <div class="bg-purple-800 p-8 rounded-2xl border-b-8 border-purple-950 mb-8">
                     <div class="text-purple-300 text-lg uppercase font-bold tracking-widest mb-2">Skor Akhir</div>
@@ -176,12 +252,83 @@
     </div>
 
     <script>
-        // --- DATA BUAH ---
-        const fruitEmojis = [
-            "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", 
-            "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", 
-            "🥬", "🥒", "🌶️", "🫑", "🌽", "🥕", "🫒", "🧄", "🧅", "🥔", 
-            "🍠", "🥐", "🍞", "🥜", "🍄", "🌰", "🍯", "🥗", "🥘", "🥫"
+        // --- AUDIO SYSTEM (Sound Synthesis) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTickSound(timeLeft) {
+            // Pastikan audio context aktif
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // LOGIKA SUARA INTENSIF
+            // Pitch dasar 600Hz.
+            // Semakin kecil timeLeft, semakin tinggi pitch (+100Hz per detik berkurang)
+            const pitch = 600 + ((10 - timeLeft) * 100); 
+
+            // Volume dasar 0.1
+            // Semakin kecil timeLeft, semakin keras (+0.03 per detik berkurang)
+            // Detik 10: Vol 0.1
+            // Detik 1: Vol 0.37
+            const volume = 0.1 + ((10 - timeLeft) * 0.04);
+
+            osc.type = 'triangle'; // Suara 'tok' seperti kayu
+            osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
+            
+            // Envelope suara (attack cepat, decay cepat)
+            gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // --- DATA BUAH LENGKAP (SESUAI PERMINTAAN) ---
+        const fruitsData = [
+            { name: "Durian", icon: "🍈" },
+            { name: "Pisang", icon: "🍌" },
+            { name: "Apel", icon: "🍎" },
+            { name: "Semangka", icon: "🍉" },
+            { name: "Nanas", icon: "🍍" },
+            { name: "Kiwi", icon: "🥝" },
+            { name: "Anggur", icon: "🍇" },
+            { name: "Melon", icon: "🍈" },
+            { name: "Salak", icon: "🟤" }, 
+            { name: "Jambu Biji", icon: "🍏" },
+            { name: "Jambu Air", icon: "🍎" },
+            { name: "Pepaya", icon: "🥭" },
+            { name: "Mangga", icon: "🥭" },
+            { name: "Jeruk Manis", icon: "🍊" },
+            { name: "Rambutan", icon: "🔴" },
+            { name: "Duku", icon: "🟡" },
+            { name: "Langsat", icon: "🟡" },
+            { name: "Kelengkeng", icon: "🟤" },
+            { name: "Alpukat", icon: "🥑" },
+            { name: "Sirsak", icon: "🍐" },
+            { name: "Belimbing Manis", icon: "⭐" },
+            { name: "Buah Naga", icon: "🟣" },
+            { name: "Manggis", icon: "🟣" },
+            { name: "Markisa", icon: "🟠" },
+            { name: "Sawo", icon: "🥔" },
+            { name: "Kedondong", icon: "🍏" },
+            { name: "Bengkuang", icon: "🧅" },
+            { name: "Jeruk Bali", icon: "🍊" },
+            { name: "Jeruk Nipis", icon: "🍋" },
+            { name: "Pisang Raja", icon: "🍌" },
+            { name: "Pisang Ambon", icon: "🍌" },
+            { name: "Pisang Kepok", icon: "🍌" },
+            { name: "Pisang Uli", icon: "🍌" },
+            { name: "Nangka", icon: "🍍" },
+            { name: "Cempedak", icon: "🍈" },
+            { name: "Sukun", icon: "🍈" },
+            { name: "Cermai", icon: "🟢" },
+            { name: "Tomat", icon: "🍅" },
+            { name: "Timun Suri", icon: "🥒" },
+            { name: "Labu Kuning", icon: "🎃" }
         ];
 
         // --- VARIABLES ---
@@ -196,13 +343,53 @@
         const startScreen = document.getElementById('start-screen');
         const gameScreen = document.getElementById('game-screen');
         const resultScreen = document.getElementById('result-screen');
-        const qCurrentEl = document.getElementById('q-current');
-        const scoreEl = document.getElementById('score-display');
         const timerBar = document.getElementById('timer-bar');
-        const timerText = document.getElementById('timer-text');
+        const timerIndicator = document.getElementById('timer-indicator');
         const emojiGrid = document.getElementById('emoji-grid');
         const feedbackOverlay = document.getElementById('feedback-overlay');
         const feedbackText = document.getElementById('feedback-text');
+        const floatingBg = document.getElementById('floating-bg');
+        const headerFloatingBg = document.getElementById('header-floating-bg');
+
+        // --- BACKGROUND ANIMATION ---
+        function createFloatingFruits() {
+            floatingBg.innerHTML = ''; 
+            const bgFruits = ["🍎", "🍌", "🍇", "🍓", "🍍", "🥝", "🍒", "🍑"];
+            for (let i = 0; i < 15; i++) {
+                const el = document.createElement('div');
+                el.innerText = bgFruits[Math.floor(Math.random() * bgFruits.length)];
+                el.className = 'floating-fruit';
+                el.style.left = `${Math.random() * 95}%`; 
+                el.style.fontSize = `${Math.random() * 3 + 2}rem`; 
+                el.style.animationDuration = `${Math.random() * 10 + 8}s`; 
+                el.style.animationDelay = `${Math.random() * 10}s`; 
+                floatingBg.appendChild(el);
+            }
+        }
+
+        // --- HEADER ANIMATION (NEW) ---
+        function createHeaderFloatingFruits() {
+            headerFloatingBg.innerHTML = ''; 
+            const bgFruits = ["🍎", "🍌", "🍇", "🍓", "🍍", "🥝", "🍒", "🍑"];
+            for (let i = 0; i < 12; i++) {
+                const el = document.createElement('div');
+                el.innerText = bgFruits[Math.floor(Math.random() * bgFruits.length)];
+                el.className = 'floating-fruit';
+                el.style.left = `${Math.random() * 95}%`; 
+                el.style.fontSize = `${Math.random() * 2 + 1.5}rem`; // Agak lebih kecil untuk header
+                el.style.animationDuration = `${Math.random() * 5 + 4}s`; // Sedikit lebih cepat karena area pendek
+                el.style.animationDelay = `${Math.random() * 5}s`; 
+                headerFloatingBg.appendChild(el);
+            }
+        }
+
+        // --- HELPER: ADD LEAF ---
+        function addLeaf(parent, positionClass) {
+            const leaf = document.createElement('span');
+            leaf.innerText = "🍃"; // Daun
+            leaf.className = `leaf-extra ${positionClass}`;
+            parent.appendChild(leaf);
+        }
 
         // --- GAME LOGIC ---
 
@@ -210,11 +397,13 @@
             startScreen.classList.add('hidden');
             resultScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
+            createFloatingFruits(); 
+            createHeaderFloatingFruits(); // Start header animation
+            // Resume Audio Context on user interaction
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             
             score = 0;
             currentLevel = 1;
-            scoreEl.innerText = "0";
-            
             loadLevel();
         }
 
@@ -222,20 +411,36 @@
             isRevealing = false;
             currentOddBtn = null;
 
-            // Pick Random Fruits
-            const normalIndex = Math.floor(Math.random() * fruitEmojis.length);
-            let oddIndex = Math.floor(Math.random() * fruitEmojis.length);
-            while (oddIndex === normalIndex) {
-                oddIndex = Math.floor(Math.random() * fruitEmojis.length);
+            const fruitIndex = (currentLevel - 1) % fruitsData.length;
+            const fruitData = fruitsData[fruitIndex];
+            const baseIcon = fruitData.icon;
+            
+            // Display level/name text REMOVED as requested.
+            // Logic still runs internally.
+            
+            timerIndicator.innerText = baseIcon;
+            
+            const isLeafPuzzle = Math.random() > 0.5;
+
+            let selectedVariation = '';
+            if (!isLeafPuzzle) {
+                const variationTypes = ['variant-tilt-hard', 'variant-scale-hard', 'variant-skew-hard', 'variant-pale-hard', 'variant-bright-hard'];
+                selectedVariation = variationTypes[Math.floor(Math.random() * variationTypes.length)];
             }
 
-            const normalFruit = fruitEmojis[normalIndex];
-            const oddFruit = fruitEmojis[oddIndex];
+            let normalLeafCount = 0;
+            let oddLeafCount = 0;
+            if (isLeafPuzzle) {
+                const scenario = Math.random() > 0.5 ? 1 : 2;
+                if (scenario === 1) {
+                    normalLeafCount = 1;
+                    oddLeafCount = 0;
+                } else {
+                    normalLeafCount = 2;
+                    oddLeafCount = 1;
+                }
+            }
 
-            // Update UI
-            qCurrentEl.innerText = currentLevel;
-
-            // Grid Generation
             const totalItems = 50;
             const oddPosition = Math.floor(Math.random() * totalItems);
 
@@ -243,19 +448,35 @@
 
             for (let i = 0; i < totalItems; i++) {
                 const btn = document.createElement('div');
-                btn.className = "grid-item text-4xl sm:text-5xl lg:text-6xl select-none flex items-center justify-center"; 
+                btn.className = "grid-item text-3xl sm:text-4xl lg:text-5xl select-none flex items-center justify-center"; 
                 btn.style.animationDelay = `${i * 0.005}s`;
                 btn.classList.add('anim-pop');
 
+                const span = document.createElement('span');
+                span.innerText = baseIcon;
+                span.className = "emoji-span"; 
+
                 if (i === oddPosition) {
-                    btn.innerText = oddFruit;
                     btn.onclick = () => handleAnswer(true);
-                    currentOddBtn = btn; 
+                    currentOddBtn = btn;
+                    
+                    if (isLeafPuzzle) {
+                        if (oddLeafCount >= 1) addLeaf(span, 'leaf-pos-1');
+                        if (oddLeafCount >= 2) addLeaf(span, 'leaf-pos-2');
+                    } else {
+                        span.classList.add(selectedVariation);
+                    }
+
                 } else {
-                    btn.innerText = normalFruit;
                     btn.onclick = () => handleAnswer(false);
+                    
+                    if (isLeafPuzzle) {
+                        if (normalLeafCount >= 1) addLeaf(span, 'leaf-pos-1');
+                        if (normalLeafCount >= 2) addLeaf(span, 'leaf-pos-2');
+                    }
                 }
 
+                btn.appendChild(span);
                 emojiGrid.appendChild(btn);
             }
 
@@ -269,6 +490,9 @@
             
             timerInterval = setInterval(() => {
                 timer--;
+                // Play Sound Effect
+                playTickSound(timer);
+                
                 updateTimerUI();
                 if (timer <= 0) {
                     clearInterval(timerInterval);
@@ -279,33 +503,27 @@
 
         function revealAnswer() {
             isRevealing = true;
-            // 1. Highlight buah yang benar
             if (currentOddBtn) {
                 currentOddBtn.classList.add('reveal-odd');
             }
-
-            // 2. Tunggu 2 detik agar user melihat
             setTimeout(() => {
-                showFeedback(false, "WAKTU HABIS! ⏰");
+                currentLevel++;
+                loadLevel();
             }, 2000);
         }
 
         function updateTimerUI() {
-            timerText.innerText = timer + "s";
             const pct = (timer / 10) * 100;
-            timerBar.style.width = pct + "%";
+            timerBar.style.height = pct + "%";
+            timerIndicator.style.bottom = pct + "%";
+            timerBar.className = "timer-progress absolute bottom-0 left-0 w-full bg-gradient-to-t shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]";
             
-            // Logic warna: Hijau -> Kuning -> Merah
-            timerBar.className = "timer-progress h-full w-full shadow-[0_0_20px_rgba(255,255,255,0.3)]";
             if (timer > 6) {
-                timerBar.classList.add('bg-gradient-to-r', 'from-green-400', 'to-green-600');
-                timerBar.classList.remove('from-yellow-400', 'to-orange-500', 'from-red-500', 'to-red-700');
+                timerBar.classList.add('from-green-400', 'to-green-600');
             } else if (timer > 3) {
-                timerBar.classList.add('bg-gradient-to-r', 'from-yellow-400', 'to-orange-500');
-                timerBar.classList.remove('from-green-400', 'to-green-600', 'from-red-500', 'to-red-700');
+                timerBar.classList.add('from-yellow-400', 'to-orange-500');
             } else {
-                timerBar.classList.add('bg-gradient-to-r', 'from-red-500', 'to-red-700');
-                timerBar.classList.remove('from-green-400', 'to-green-600', 'from-yellow-400', 'to-orange-500');
+                timerBar.classList.add('from-red-500', 'to-red-700');
             }
         }
 
@@ -314,7 +532,7 @@
 
             if (!isCorrect) {
                 clearInterval(timerInterval);
-                showFeedback(false, "SALAH PILIH! ❌");
+                showFeedback(false, "SALAH! ❌");
                 return;
             }
 
@@ -334,7 +552,8 @@
                 score += 100 + (timer * 10);
             }
             
-            scoreEl.innerText = score;
+            // Score UI removed, but logic remains
+            // scoreEl.innerText = score;
 
             setTimeout(() => {
                 feedbackOverlay.classList.add('hidden');
