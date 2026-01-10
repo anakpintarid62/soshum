@@ -34,15 +34,6 @@
             flex-direction: column;
         }
 
-        /* GRID ANIMATIONS */
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .anim-pop { animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-        
         /* ANIMASI KONTAINER BERGOYANG */
         @keyframes swayBox {
             0% { transform: rotate(0deg) translateY(0px); }
@@ -56,6 +47,15 @@
             animation: swayBox 8s ease-in-out infinite;
             transform-origin: center center;
         }
+
+        /* ANIMASI POP-IN (GRID ITEMS) */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .anim-pop { animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
         /* ANIMASI REVEAL (JAWABAN BENAR) */
         @keyframes jedagJedug {
@@ -77,34 +77,27 @@
         .emoji-span {
             display: inline-block;
             transition: transform 0.3s;
-            position: relative; /* Untuk positioning daun */
+            position: relative;
             z-index: 10;
         }
 
-        /* 1. Miring */
+        /* VARIASI MODE SULIT */
         .variant-tilt-hard { transform: rotate(30deg); }
-        /* 2. Kecil */
         .variant-scale-hard { transform: scale(0.65); }
-        /* 3. Penyek */
         .variant-skew-hard { transform: skew(-20deg); }
-        /* 4. Pudar */
         .variant-pale-hard { filter: saturate(0.4) opacity(0.85); }
-        /* 5. Terang */
         .variant-bright-hard { filter: brightness(1.4); }
 
         /* LEAF OVERLAYS (Sistem Daun) */
         .leaf-extra {
             position: absolute;
-            font-size: 0.6em; /* Lebih kecil dari buah */
+            font-size: 0.6em;
             pointer-events: none;
             filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
             z-index: 20;
         }
         
-        /* Posisi Daun 1 (Kanan Atas) */
         .leaf-pos-1 { top: -10px; right: -10px; transform: rotate(15deg); }
-        
-        /* Posisi Daun 2 (Kiri Atas - untuk skenario 2 daun) */
         .leaf-pos-2 { top: -5px; left: -10px; transform: rotate(-45deg) scaleX(-1); }
 
         /* ANIMASI BACKGROUND MELAYANG */
@@ -172,7 +165,7 @@
             </div>
             <h1 class="text-6xl font-bold mb-2 uppercase tracking-wider text-green-400 drop-shadow-lg text-center" style="text-shadow: 2px 2px 0px #064e3b;">TEBAK DAUN</h1>
             <p class="text-2xl mb-8 font-semibold text-gray-300">Cari buah dengan jumlah daun yang berbeda!</p>
-            <button onclick="startGame()" class="bg-green-600 hover:bg-green-500 text-white text-3xl font-bold py-4 px-12 rounded-full border-b-8 border-green-800 active:border-b-0 active:translate-y-2 transition-all shadow-xl">
+            <button id="btn-start" onclick="startGame()" class="bg-green-600 hover:bg-green-500 text-white text-3xl font-bold py-4 px-12 rounded-full border-b-8 border-green-800 active:border-b-0 active:translate-y-2 transition-all shadow-xl hover:scale-105">
                 MULAI TANTANGAN
             </button>
         </div>
@@ -184,7 +177,6 @@
             <div class="relative w-full h-24 bg-black/30 backdrop-blur-md border-b border-white/10 shrink-0 overflow-hidden">
                 <!-- Header Floating Fruits Container -->
                 <div id="header-floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full"></div>
-                <!-- Konten kosong, hanya animasi -->
             </div>
 
             <!-- MAIN CONTENT -->
@@ -223,8 +215,14 @@
 
                 <!-- Feedback Overlay -->
                 <div id="feedback-overlay" class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-[2rem]">
-                    <div id="feedback-text" class="text-8xl font-bold text-white uppercase drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-bounce text-center leading-tight">
-                        KETEMU!
+                    <div class="text-center">
+                        <div id="feedback-text" class="text-8xl font-bold text-white uppercase drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-bounce text-center leading-tight">
+                            KETEMU!
+                        </div>
+                        <!-- NEW: Subtext Motivation -->
+                        <div id="feedback-subtext" class="text-3xl font-semibold text-yellow-300 mt-6 drop-shadow-md animate-pulse">
+                            <!-- Text disuntikkan via JS -->
+                        </div>
                     </div>
                 </div>
 
@@ -252,34 +250,77 @@
     </div>
 
     <script>
-        // --- AUDIO SYSTEM (Sound Synthesis) ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // --- DATA BUAH (40 Jenis - Visual Accurate Emojis) ---
+        const fruitsData = [
+            { name: "Apel Merah", icon: "🍎" },
+            { name: "Apel Hijau", icon: "🍏" },
+            { name: "Pir", icon: "🍐" },
+            { name: "Jeruk", icon: "🍊" },
+            { name: "Lemon", icon: "🍋" },
+            { name: "Pisang", icon: "🍌" },
+            { name: "Semangka", icon: "🍉" },
+            { name: "Anggur", icon: "🍇" },
+            { name: "Stroberi", icon: "🍓" },
+            { name: "Blueberry", icon: "🫐" },
+            { name: "Melon", icon: "🍈" },
+            { name: "Ceri", icon: "🍒" },
+            { name: "Persik", icon: "🍑" },
+            { name: "Mangga", icon: "🥭" },
+            { name: "Nanas", icon: "🍍" },
+            { name: "Kelapa", icon: "🥥" },
+            { name: "Kiwi", icon: "🥝" },
+            { name: "Tomat", icon: "🍅" },
+            { name: "Terong", icon: "🍆" },
+            { name: "Alpukat", icon: "🥑" },
+            { name: "Zaitun", icon: "🫒" },
+            { name: "Timun", icon: "🥒" },
+            { name: "Cabai Merah", icon: "🌶️" },
+            { name: "Paprika", icon: "🫑" },
+            { name: "Jagung", icon: "🌽" },
+            { name: "Wortel", icon: "🥕" },
+            { name: "Kentang", icon: "🥔" },
+            { name: "Ubi", icon: "🍠" },
+            { name: "Kacang", icon: "🥜" },
+            { name: "Kastanye", icon: "🌰" },
+            { name: "Labu", icon: "🎃" },
+            { name: "Jamur", icon: "🍄" },
+            { name: "Brokoli", icon: "🥦" },
+            { name: "Sawi", icon: "🥬" },
+            { name: "Bawang Putih", icon: "🧄" },
+            { name: "Bawang Bombay", icon: "🧅" },
+            { name: "Jeruk Nipis", icon: "🍋" }, // Visual Lemon
+            { name: "Pisang Ambon", icon: "🍌" }, // Visual Banana
+            { name: "Apel Fuji", icon: "🍎" }, // Visual Red Apple
+            { name: "Cabai Rawit", icon: "🌶️" } // Visual Hot Pepper
+        ];
+
+        // --- AUDIO SYSTEM: SYNTH & VOICE ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
         
+        try {
+            audioCtx = new AudioContext();
+        } catch (e) {
+            console.warn("Web Audio API tidak didukung browser ini.");
+        }
+        
+        // 1. SOUND EFFECTS (Tick Sound)
         function playTickSound(timeLeft) {
-            // Pastikan audio context aktif
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume().catch(e => console.log(e));
 
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-
             osc.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            // LOGIKA SUARA INTENSIF
-            // Pitch dasar 600Hz.
-            // Semakin kecil timeLeft, semakin tinggi pitch (+100Hz per detik berkurang)
+            // Pitch naik seiring waktu habis
             const pitch = 600 + ((10 - timeLeft) * 100); 
-
-            // Volume dasar 0.1
-            // Semakin kecil timeLeft, semakin keras (+0.03 per detik berkurang)
-            // Detik 10: Vol 0.1
-            // Detik 1: Vol 0.37
+            // Volume naik seiring waktu habis
             const volume = 0.1 + ((10 - timeLeft) * 0.04);
 
-            osc.type = 'triangle'; // Suara 'tok' seperti kayu
+            osc.type = 'triangle';
             osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
-            
-            // Envelope suara (attack cepat, decay cepat)
             gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
 
@@ -287,49 +328,116 @@
             osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // --- DATA BUAH LENGKAP (SESUAI PERMINTAAN) ---
-        const fruitsData = [
-            { name: "Durian", icon: "🍈" },
-            { name: "Pisang", icon: "🍌" },
-            { name: "Apel", icon: "🍎" },
-            { name: "Semangka", icon: "🍉" },
-            { name: "Nanas", icon: "🍍" },
-            { name: "Kiwi", icon: "🥝" },
-            { name: "Anggur", icon: "🍇" },
-            { name: "Melon", icon: "🍈" },
-            { name: "Salak", icon: "🟤" }, 
-            { name: "Jambu Biji", icon: "🍏" },
-            { name: "Jambu Air", icon: "🍎" },
-            { name: "Pepaya", icon: "🥭" },
-            { name: "Mangga", icon: "🥭" },
-            { name: "Jeruk Manis", icon: "🍊" },
-            { name: "Rambutan", icon: "🔴" },
-            { name: "Duku", icon: "🟡" },
-            { name: "Langsat", icon: "🟡" },
-            { name: "Kelengkeng", icon: "🟤" },
-            { name: "Alpukat", icon: "🥑" },
-            { name: "Sirsak", icon: "🍐" },
-            { name: "Belimbing Manis", icon: "⭐" },
-            { name: "Buah Naga", icon: "🟣" },
-            { name: "Manggis", icon: "🟣" },
-            { name: "Markisa", icon: "🟠" },
-            { name: "Sawo", icon: "🥔" },
-            { name: "Kedondong", icon: "🍏" },
-            { name: "Bengkuang", icon: "🧅" },
-            { name: "Jeruk Bali", icon: "🍊" },
-            { name: "Jeruk Nipis", icon: "🍋" },
-            { name: "Pisang Raja", icon: "🍌" },
-            { name: "Pisang Ambon", icon: "🍌" },
-            { name: "Pisang Kepok", icon: "🍌" },
-            { name: "Pisang Uli", icon: "🍌" },
-            { name: "Nangka", icon: "🍍" },
-            { name: "Cempedak", icon: "🍈" },
-            { name: "Sukun", icon: "🍈" },
-            { name: "Cermai", icon: "🟢" },
-            { name: "Tomat", icon: "🍅" },
-            { name: "Timun Suri", icon: "🥒" },
-            { name: "Labu Kuning", icon: "🎃" }
-        ];
+        // SOUND EFFECT (Success Ding!)
+        function playSuccessSound() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume().catch(e => console.log(e));
+            
+            // Nada 1
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            gain1.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            osc1.start();
+            osc1.stop(audioCtx.currentTime + 0.5);
+
+            // Nada 2 (Harmoni)
+            setTimeout(() => {
+                if (!audioCtx) return;
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1046.50, audioCtx.currentTime); // C6
+                gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.6);
+            }, 100);
+        }
+
+        // 2. VOICE HOST (Lively & Dynamic)
+        const host = window.speechSynthesis;
+        let hostVoice = null;
+
+        function initVoice() {
+            if (!host) return;
+            const voices = host.getVoices();
+            hostVoice = voices.find(v => v.lang.includes('id')) || voices[0];
+        }
+        
+        if (host && host.onvoiceschanged !== undefined) {
+            host.onvoiceschanged = initVoice;
+        }
+
+        function speak(text, type = 'normal') {
+            if (!host) return;
+            if (!hostVoice) initVoice();
+            host.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (hostVoice) utterance.voice = hostVoice;
+            utterance.lang = 'id-ID';
+
+            // Variasi dinamis agar tidak robotik
+            const randomRate = 1.0 + (Math.random() * 0.3);
+            const randomPitch = 0.9 + (Math.random() * 0.4);
+
+            utterance.rate = randomRate;
+            utterance.pitch = randomPitch;
+
+            if (type === 'excited') {
+                utterance.rate = 1.2 + (Math.random() * 0.2); 
+                utterance.pitch = 1.2 + (Math.random() * 0.3); 
+            } else if (type === 'sad') {
+                utterance.rate = 0.8 + (Math.random() * 0.2); 
+                utterance.pitch = 0.7 + (Math.random() * 0.2); 
+            }
+
+            host.speak(utterance);
+        }
+
+        // --- KAMUS KATA ---
+        const phrases = {
+            correct: [
+                "Mantap jiwa!", "Mata elang!", "Keren abis!", "Luar biasa!", 
+                "Tepat sekali!", "Jagoan!", "Gokil!", "Savage!", 
+                "Gaspol!", "Wah, ga ada obat!", "Master buah nih!", 
+                "Sempurna!", "Gampang kan?"
+            ],
+            wrong: [
+                "Aduh, salah!", "Coba lagi!", "Meleset bos!", "Yah, kurang tepat!", 
+                "Hati-hati!", "Waduh!", "Belum beruntung!", "Jangan nyerah!", 
+                "Aduh, beda tipis!", "Fokus, fokus!", "Bukan yang itu!"
+            ],
+            intro: [
+                "Siap-siap ya!", "Ayo mulai petualangan!", "Tunjukkan taringmu!", 
+                "Fokus matanya!", "Tarik napas, mulai!", "Lets go!"
+            ],
+            levelStart: [
+                "Cari...", "Temukan...", "Mana nih...", "Ayo cari...", "Target kita...", "Coba temukan..."
+            ],
+            motivation: [
+                "Jangan kasih kendor, lanjut!",
+                "Ayo sikat level berikutnya!",
+                "Kamu on fire! Teruskan!",
+                "Level depan pasti bisa!",
+                "Semangat terus pantang mundur!",
+                "Pertahankan rekor ini!",
+                "Siap tantangan baru? Gasss!",
+                "Fokus lagi, kita lanjut!"
+            ]
+        };
+
+        function getRandomPhrase(type) {
+            const list = phrases[type];
+            return list[Math.floor(Math.random() * list.length)];
+        }
 
         // --- VARIABLES ---
         let currentLevel = 0;
@@ -348,10 +456,12 @@
         const emojiGrid = document.getElementById('emoji-grid');
         const feedbackOverlay = document.getElementById('feedback-overlay');
         const feedbackText = document.getElementById('feedback-text');
+        const feedbackSubText = document.getElementById('feedback-subtext'); 
         const floatingBg = document.getElementById('floating-bg');
         const headerFloatingBg = document.getElementById('header-floating-bg');
+        const finalScoreEl = document.getElementById('final-score');
 
-        // --- BACKGROUND ANIMATION ---
+        // --- ANIMATIONS ---
         function createFloatingFruits() {
             floatingBg.innerHTML = ''; 
             const bgFruits = ["🍎", "🍌", "🍇", "🍓", "🍍", "🥝", "🍒", "🍑"];
@@ -367,7 +477,6 @@
             }
         }
 
-        // --- HEADER ANIMATION (NEW) ---
         function createHeaderFloatingFruits() {
             headerFloatingBg.innerHTML = ''; 
             const bgFruits = ["🍎", "🍌", "🍇", "🍓", "🍍", "🥝", "🍒", "🍑"];
@@ -376,17 +485,16 @@
                 el.innerText = bgFruits[Math.floor(Math.random() * bgFruits.length)];
                 el.className = 'floating-fruit';
                 el.style.left = `${Math.random() * 95}%`; 
-                el.style.fontSize = `${Math.random() * 2 + 1.5}rem`; // Agak lebih kecil untuk header
-                el.style.animationDuration = `${Math.random() * 5 + 4}s`; // Sedikit lebih cepat karena area pendek
+                el.style.fontSize = `${Math.random() * 2 + 1.5}rem`; 
+                el.style.animationDuration = `${Math.random() * 5 + 4}s`; 
                 el.style.animationDelay = `${Math.random() * 5}s`; 
                 headerFloatingBg.appendChild(el);
             }
         }
 
-        // --- HELPER: ADD LEAF ---
         function addLeaf(parent, positionClass) {
             const leaf = document.createElement('span');
-            leaf.innerText = "🍃"; // Daun
+            leaf.innerText = "🍃"; 
             leaf.className = `leaf-extra ${positionClass}`;
             parent.appendChild(leaf);
         }
@@ -398,10 +506,15 @@
             resultScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
             createFloatingFruits(); 
-            createHeaderFloatingFruits(); // Start header animation
-            // Resume Audio Context on user interaction
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            createHeaderFloatingFruits();
             
+            // Resume context jika ter-suspend (interaksi user pertama)
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(e => console.log(e));
+            }
+            
+            speak("Selamat datang di Tantangan Buah Ekstrim! " + getRandomPhrase('intro'), 'excited');
+
             score = 0;
             currentLevel = 1;
             loadLevel();
@@ -411,14 +524,24 @@
             isRevealing = false;
             currentOddBtn = null;
 
+            // Pilih buah berurutan (looping jika level > 40)
             const fruitIndex = (currentLevel - 1) % fruitsData.length;
             const fruitData = fruitsData[fruitIndex];
             const baseIcon = fruitData.icon;
             
-            // Display level/name text REMOVED as requested.
-            // Logic still runs internally.
-            
-            timerIndicator.innerText = baseIcon;
+            // Suara Soal
+            setTimeout(() => {
+                const introWord = getRandomPhrase('levelStart');
+                const textToSpeak = `${introWord} ${fruitData.name}!`;
+                
+                if (currentLevel > 1) {
+                    speak(textToSpeak, 'normal');
+                } else {
+                    setTimeout(() => speak(textToSpeak, 'normal'), 2500);
+                }
+            }, 500);
+
+            if (timerIndicator) timerIndicator.innerText = baseIcon;
             
             const isLeafPuzzle = Math.random() > 0.5;
 
@@ -490,7 +613,6 @@
             
             timerInterval = setInterval(() => {
                 timer--;
-                // Play Sound Effect
                 playTickSound(timer);
                 
                 updateTimerUI();
@@ -505,6 +627,7 @@
             isRevealing = true;
             if (currentOddBtn) {
                 currentOddBtn.classList.add('reveal-odd');
+                // No sound on timeout
             }
             setTimeout(() => {
                 currentLevel++;
@@ -533,34 +656,52 @@
             if (!isCorrect) {
                 clearInterval(timerInterval);
                 showFeedback(false, "SALAH! ❌");
+                speak(getRandomPhrase('wrong'), 'sad');
                 return;
             }
 
             clearInterval(timerInterval);
-            showFeedback(true);
+            
+            playSuccessSound();
+
+            const praise = getRandomPhrase('correct');
+            const motivation = getRandomPhrase('motivation');
+            
+            showFeedback(true, "KETEMU! 🎉", motivation);
+            
+            setTimeout(() => {
+                speak(`${praise} ${motivation}`, 'excited');
+            }, 300);
         }
 
-        function showFeedback(isCorrect, customText = "") {
+        function showFeedback(isCorrect, mainText = "", subText = "") {
             feedbackOverlay.classList.remove('hidden');
             
-            if (customText) {
-                feedbackText.innerText = customText;
-                feedbackText.className = "text-6xl md:text-8xl font-bold text-red-500 drop-shadow-[0_5px_5px_rgba(0,0,0,1)] animate-pulse text-center";
-            } else if (isCorrect) {
-                feedbackText.innerText = "KETEMU! 🎉";
+            feedbackText.innerText = mainText;
+            
+            if (isCorrect) {
                 feedbackText.className = "text-6xl md:text-8xl font-bold text-green-400 drop-shadow-[0_5px_5px_rgba(0,0,0,1)] animate-bounce text-center";
+                if(feedbackSubText) {
+                    feedbackSubText.innerText = subText;
+                    feedbackSubText.classList.remove('hidden');
+                }
                 score += 100 + (timer * 10);
+            } else {
+                feedbackText.className = "text-6xl md:text-8xl font-bold text-red-500 drop-shadow-[0_5px_5px_rgba(0,0,0,1)] animate-pulse text-center";
+                if(feedbackSubText) feedbackSubText.classList.add('hidden'); 
             }
             
-            // Score UI removed, but logic remains
-            // scoreEl.innerText = score;
+            if(finalScoreEl) finalScoreEl.innerText = score;
 
             setTimeout(() => {
                 feedbackOverlay.classList.add('hidden');
                 currentLevel++;
                 loadLevel();
-            }, 1500);
+            }, 3500); 
         }
+
+        // GLOBAL EXPOSURE FOR HTML BUTTON (Fixes ReferenceError)
+        window.startGame = startGame;
 
     </script>
 </body>
