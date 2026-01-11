@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Level Dewa (God Mode)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* FRAME 16:9 */
+        #game-frame {
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16/9;
+            background: radial-gradient(circle at center, #1a0b2e 0%, #000000 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.3); /* Red glow for danger feel */
+            border: 4px solid #333;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.2s ease;
+        }
+
+        /* EFEK PANIK (Background Flash) */
+        @keyframes panicFlash {
+            0%, 100% { background: radial-gradient(circle at center, #1a0b2e 0%, #000000 100%); }
+            50% { background: radial-gradient(circle at center, #3f0e0e 0%, #1a0505 100%); }
+        }
+        .panic-mode {
+            animation: panicFlash 0.5s infinite;
+            border-color: #ef4444 !important;
+        }
+
+        /* ANIMASI UMUM */
+        .container-dynamic {
+            /* Goyangan dipercepat sedikit untuk menambah ketegangan */
+            animation: swayBox 4s ease-in-out infinite; 
+            transform-origin: center center;
+        }
+        @keyframes swayBox {
+            0%, 100% { transform: rotate(0deg) translateY(0px); }
+            25% { transform: rotate(0.3deg) translateY(-1px); }
+            50% { transform: rotate(0deg) translateY(0px); }
+            75% { transform: rotate(-0.3deg) translateY(1px); }
+        }
+        
+        .anim-pop { animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* REVEAL ANIMATION */
+        .reveal-odd {
+            border: 4px solid #ef4444 !important;
+            border-radius: 50%;
+            animation: jedagJedug 0.5s infinite !important;
+            z-index: 50;
+            background-color: white !important;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 1);
+        }
+        @keyframes jedagJedug {
+            0%, 100% { transform: scale(1); border-color: rgba(255, 0, 0, 1); }
+            50% { transform: scale(1.3); border-color: rgba(255, 255, 0, 1); }
+        }
+
+        /* === MODE VARIASI (HARDCORE TUNING) === */
+        
+        .emoji-span {
+            display: inline-block;
+            transition: transform 0.2s, filter 0.2s;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 1. MODE FISIK (MIKRO) - Perbedaan sangat tipis */
+        .var-tilt { transform: rotate(12deg); } /* Hanya 12 derajat! */
+        .var-upside { transform: rotate(160deg); } /* Hampir terbalik tapi miring */
+        .var-flat { transform: scaleY(0.85); } /* Sedikit gepeng */
+        .var-thin { transform: scaleX(0.85); } /* Sedikit kurus */
+        .var-small { transform: scale(0.85); } /* Sedikit kecil */
+
+        /* 2. MODE WARNA (SAMAR) */
+        .var-pale { filter: saturate(0.65); } /* Pudar dikit */
+        .var-bright { filter: brightness(1.15); } /* Terang dikit */
+        .var-hue { filter: hue-rotate(15deg); } /* Geser warna dikit banget */
+        .var-sepia { filter: sepia(0.4); } /* Efek tua dikit */
+
+        /* 3. MODE GERAK (HALUS) - Gerakan kecil menjebak */
+        @keyframes wiggle-micro { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+        .var-wiggle { animation: wiggle-micro 0.2s infinite; }
+        
+        @keyframes bounce-micro { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        .var-bounce { animation: bounce-micro 0.4s infinite; }
+        
+        @keyframes pulse-micro { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.9); } }
+        .var-pulse { animation: pulse-micro 0.5s infinite; }
+
+        /* 4. MODE AKSESORIS (GHOST) - Transparan & Kecil */
+        .extra-marker {
+            position: absolute;
+            font-size: 0.45em; /* Sangat kecil */
+            pointer-events: none;
+            opacity: 0.6; /* Semi transparan! */
+            z-index: 20;
+            filter: grayscale(50%);
+        }
+        .pos-top-right { top: -2px; right: -2px; transform: rotate(10deg); }
+        .pos-bottom-left { bottom: -2px; left: -2px; transform: rotate(-10deg); }
+        .pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.5; }
+
+        /* BACKGROUND FLOATING */
+        .floating-item {
+            position: absolute;
+            bottom: -50px;
+            animation: floatUp linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: grayscale(80%) brightness(0.5); /* Lebih gelap biar grid menonjol */
+            opacity: 0.1;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(120%) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.1; }
+            90% { opacity: 0.1; }
+            100% { transform: translateY(-120%) rotate(360deg); opacity: 0; }
+        }
+
+        /* GRID ITEM */
+        .grid-item {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            z-index: 10;
+            position: relative;
+        }
+        /* Hover effect dihilangkan di Hard Mode agar tidak membantu pemain "scanning" dengan mouse */
+        .grid-item:active { transform: scale(0.9); background-color: rgba(255,255,255,0.1); }
+
+        /* TIMER & UI */
+        .timer-progress { transition: height 0.1s linear; } /* Update lebih mulus/cepat */
+        .timer-indicator { transition: bottom 0.1s linear; z-index: 20; left: 50%; transform: translate(-50%, 50%); }
+    </style>
+</head>
+<body>
+
+    <div id="game-frame">
+        
+        <!-- START SCREEN -->
+        <div id="start-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/95 text-white p-8 text-center">
+            <div class="flex gap-4 mb-6 text-7xl animate-pulse">
+                <span>🔥</span><span>☠️</span><span>⚡</span><span>😈</span>
+            </div>
+            <h1 class="text-7xl font-black mb-2 uppercase tracking-tighter text-red-600 filter drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]">GOD MODE</h1>
+            <p class="text-xl mb-8 font-mono text-gray-400 max-w-xl border border-red-900 p-4 rounded bg-red-950/20">
+                PERINGATAN: Tingkat kesulitan ekstrem.<br>
+                Waktu: <strong>5 Detik</strong>.<br>
+                Perbedaan: <strong>Mikroskopik</strong>.
+            </p>
+            <button onclick="startGame()" class="group relative px-16 py-5 bg-red-700 hover:bg-red-600 rounded-sm text-2xl font-bold tracking-widest shadow-[0_0_30px_rgba(255,0,0,0.4)] transition-all transform hover:scale-105">
+                <span class="relative z-10">BERANI?</span>
+            </button>
+        </div>
+
+        <!-- GAMEPLAY SCREEN -->
+        <div id="game-screen" class="flex flex-col h-full w-full hidden">
+            
+            <!-- HEADER -->
+            <div class="relative w-full h-20 bg-black/60 border-b border-red-900/50 shrink-0 overflow-hidden flex items-center justify-between px-8">
+                <!-- Mode Info -->
+                <div id="mode-display" class="relative z-10 bg-red-900/30 text-red-200 px-4 py-1 rounded border border-red-500/30 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                    <span id="mode-icon" class="animate-spin">⚠️</span> <span id="mode-text">...</span>
+                </div>
+
+                <!-- Floating BG Header -->
+                <div id="header-floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full opacity-30"></div>
+                
+                <!-- Score -->
+                <div class="relative z-10 text-right">
+                    <div class="text-[10px] text-red-400 uppercase tracking-widest">Score</div>
+                    <div class="text-3xl font-mono font-black text-red-500" id="score-display">0</div>
+                </div>
+            </div>
+
+            <!-- MAIN AREA -->
+            <div class="flex-1 w-full flex flex-row items-stretch justify-center p-4 gap-6 relative max-w-7xl mx-auto">
+                
+                <!-- GRID CONTAINER -->
+                <div class="flex-1 bg-black/40 rounded-xl p-4 shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] border border-white/5 relative z-10 flex items-center justify-center overflow-hidden container-dynamic">
+                    <div id="floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full"></div>
+                    
+                    <!-- THE GRID -->
+                    <div id="emoji-grid" class="grid grid-cols-10 gap-1 w-full relative z-10">
+                        <!-- JS generated items -->
+                    </div>
+                </div>
+
+                <!-- TIMER SIDEBAR -->
+                <div class="w-16 relative flex flex-col items-center justify-center">
+                    <div class="w-full h-full bg-black/80 rounded-full border-2 border-red-900/50 relative overflow-visible">
+                        <!-- Liquid Bar -->
+                        <div class="absolute bottom-0 left-0 w-full h-full rounded-full overflow-hidden">
+                            <div id="timer-bar" class="timer-progress absolute bottom-0 left-0 w-full bg-gradient-to-t from-red-900 via-red-600 to-white" style="height: 100%;"></div>
+                        </div>
+                        <!-- Indicator -->
+                        <div id="timer-indicator" class="timer-indicator absolute text-4xl filter drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]" style="bottom: 100%;">🔥</div>
+                    </div>
+                </div>
+
+                <!-- FEEDBACK OVERLAY -->
+                <div id="feedback-overlay" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                    <div class="text-center">
+                        <div id="feedback-text" class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 uppercase italic transform -skew-x-12 animate-pulse">
+                            KETEMU!
+                        </div>
+                        <div id="feedback-subtext" class="text-2xl font-mono text-red-400 mt-4 tracking-[0.5em]">
+                            GODLIKE
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div id="result-screen" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-black text-white">
+            <div class="border-4 border-red-600 p-12 bg-black shadow-[0_0_100px_rgba(255,0,0,0.5)] text-center max-w-2xl w-full">
+                <div class="text-8xl mb-6">💀</div>
+                <h2 class="text-6xl font-black mb-2 text-red-600 uppercase">GAME OVER</h2>
+                <p class="text-gray-500 mb-8 font-mono">Mentalmu belum cukup kuat?</p>
+                
+                <div class="border border-white/20 p-6 mb-8 bg-white/5">
+                    <div class="text-gray-400 text-xs uppercase tracking-widest">Final Score</div>
+                    <div class="text-7xl font-mono font-bold text-white" id="final-score">0</div>
+                </div>
+                
+                <button onclick="startGame()" class="w-full bg-red-700 hover:bg-red-600 text-white text-xl font-bold py-4 uppercase tracking-widest transition-all">
+                    COBA LAGI
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA HARDCORE ---
+        const database = [
+            { name: "Singa", icon: "🦁", type: "animal", fake: "🐯" }, 
+            { name: "Jeruk", icon: "🍊", type: "fruit", fake: "🍑" },
+            { name: "Katak", icon: "🐸", type: "animal", fake: "🐢" },
+            { name: "Apel Hijau", icon: "🍏", type: "fruit", fake: "🍐" },
+            { name: "Kepiting", icon: "🦀", type: "animal", fake: "🦞" },
+            { name: "Apel Merah", icon: "🍎", type: "fruit", fake: "🍅" },
+            { name: "Ayam", icon: "🐥", type: "animal", fake: "🐣" },
+            { name: "Lemon", icon: "🍋", type: "fruit", fake: "🍌" },
+            { name: "Beruang", icon: "🐻", type: "animal", fake: "🐶" },
+            { name: "Kiwi", icon: "🥝", type: "fruit", fake: "🍈" },
+            { name: "Babi", icon: "🐷", type: "animal", fake: "🐽" },
+            { name: "Persik", icon: "🍑", type: "fruit", fake: "🍊" },
+            { name: "Buaya", icon: "🐊", type: "animal", fake: "🐉" },
+            { name: "Alpukat", icon: "🥑", type: "fruit", fake: "🍐" },
+            { name: "Rubah", icon: "🦊", type: "animal", fake: "🐺" },
+            { name: "Wortel", icon: "🥕", type: "fruit", fake: "🍠" },
+            { name: "Gurita", icon: "🐙", type: "animal", fake: "🦑" },
+            { name: "Cabai", icon: "🌶️", type: "fruit", fake: "🧧" },
+            { name: "Lebah", icon: "🐝", type: "animal", fake: "🪰" },
+            { name: "Pisang", icon: "🍌", type: "fruit", fake: "🌙" },
+            { name: "Kelinci", icon: "🐰", type: "animal", fake: "🐭" },
+            { name: "Bawang", icon: "🧄", type: "fruit", fake: "🧅" },
+            { name: "Monyet", icon: "🐵", type: "animal", fake: "🙉" },
+            { name: "Kelapa", icon: "🥥", type: "fruit", fake: "🥔" },
+            { name: "Kura-kura", icon: "🐢", type: "animal", fake: "🐍" },
+            { name: "Melon", icon: "🍈", type: "fruit", fake: "🎾" },
+            { name: "Semangka", icon: "🍉", type: "fruit", fake: "🍕" },
+            { name: "Harimau", icon: "🐯", type: "animal", fake: "🐱" },
+            { name: "Labu", icon: "🎃", type: "fruit", fake: "🏀" },
+            { name: "Tikus", icon: "🐭", type: "animal", fake: "🐹" },
+            { name: "Jamur", icon: "🍄", type: "fruit", fake: "☂️" },
+            { name: "Ulat", icon: "🐛", type: "animal", fake: "🐉" },
+            { name: "Timun", icon: "🥒", type: "fruit", fake: "🌭" },
+            { name: "Kuda", icon: "🦄", type: "animal", fake: "🐴" },
+            { name: "Anggur", icon: "🍇", type: "fruit", fake: "🫐" },
+            { name: "Kumbang", icon: "🐞", type: "animal", fake: "🔴" },
+            { name: "Stroberi", icon: "🍓", type: "fruit", fake: "🌹" },
+            { name: "Jerapah", icon: "🦒", type: "animal", fake: "🐆" },
+            { name: "Jagung", icon: "🌽", type: "fruit", fake: "🍌" } 
+        ];
+
+        // --- STATE ---
+        let level = 0;
+        let score = 0;
+        let timer = 5.0; // 5 DETIK!
+        let maxTime = 5.0;
+        let timerInterval;
+        let isPaused = false;
+        let activeOddButton = null;
+
+        // --- DOM ---
+        const els = {
+            start: document.getElementById('start-screen'),
+            game: document.getElementById('game-screen'),
+            result: document.getElementById('result-screen'),
+            grid: document.getElementById('emoji-grid'),
+            timerBar: document.getElementById('timer-bar'),
+            timerIcon: document.getElementById('timer-indicator'),
+            score: document.getElementById('score-display'),
+            finalScore: document.getElementById('final-score'),
+            overlay: document.getElementById('feedback-overlay'),
+            ovText: document.getElementById('feedback-text'),
+            ovSub: document.getElementById('feedback-subtext'),
+            frame: document.getElementById('game-frame'),
+            modeText: document.getElementById('mode-text'),
+            modeIcon: document.getElementById('mode-icon'),
+            floatBg: document.getElementById('floating-bg'),
+            headerBg: document.getElementById('header-floating-bg')
+        };
+
+        // --- AUDIO ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        try { audioCtx = new AudioContext(); } catch(e){}
+
+        function playSound(type) {
+            if(!audioCtx) return;
+            if(audioCtx.state === 'suspended') audioCtx.resume().catch(e=>{});
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if(type === 'tick') {
+                // Suara detak jantung yang cepat dan rendah
+                osc.type = 'sawtooth';
+                const pitch = 100 + ((maxTime - timer) * 50); // Pitch naik
+                osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
+                
+                // Volume naik drastis saat waktu habis
+                const vol = 0.05 + ((maxTime - timer) * 0.05);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.05); // Sangat pendek
+                
+                osc.start(); osc.stop(audioCtx.currentTime+0.05);
+            } else if (type === 'win') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.3);
+                osc.start(); osc.stop(audioCtx.currentTime+0.3);
+                
+                // Efek koin
+                setTimeout(() => {
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.4);
+                    osc2.start(); osc2.stop(audioCtx.currentTime+0.4);
+                }, 100);
+            }
+        }
+
+        const host = window.speechSynthesis;
+        function speak(text, mode='fast') {
+            if(!host) return;
+            host.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'id-ID';
+            // Suara cepat dan tegas untuk God Mode
+            u.rate = 1.4 + (Math.random() * 0.2); 
+            u.pitch = 1.1;
+            host.speak(u);
+        }
+
+        const phrases = {
+            win: ["Gila!", "Dewa!", "Sakit!", "Edan!", "Monster!", "GG!", "Sadis!"],
+            fail: ["Hancur!", "Tewas!", "Lambat!", "Tidur ya?", "Pulang sana!"],
+            intro: ["Mode Dewa aktif. Jangan berkedip!", "Waktu cuma 5 detik!", "Buktikan nyalimu!"],
+            modes: {
+                transform: "Bentuk!",
+                color: "Warna!",
+                marker: "Tanda!",
+                imposter: "Penipu!",
+                motion: "Gerak!"
+            }
+        };
+        function getQuote(k) { return phrases[k][Math.floor(Math.random()*phrases[k].length)]; }
+
+        // --- CORE GAME ---
+
+        function startGame() {
+            els.start.classList.add('hidden');
+            els.result.classList.add('hidden');
+            els.game.classList.remove('hidden');
+            
+            if(audioCtx && audioCtx.state==='suspended') audioCtx.resume().catch(e=>{});
+            speak(getQuote('intro'));
+            
+            initFloater(els.floatBg, 20, '2rem'); // Lebih banyak, lebih kecil
+            initFloater(els.headerBg, 15, '1.5rem');
+
+            score = 0;
+            level = 1;
+            loadLevel();
+        }
+
+        function initFloater(container, count, size) {
+            container.innerHTML = '';
+            const icons = ['🔥','💀','⚡','👁️','🦁','🐯'];
+            for(let i=0; i<count; i++) {
+                const d = document.createElement('div');
+                d.className = 'floating-item';
+                d.innerText = icons[Math.floor(Math.random()*icons.length)];
+                d.style.left = Math.random()*95 + '%';
+                d.style.fontSize = size;
+                d.style.animationDuration = (4 + Math.random()*5) + 's'; // Lebih cepat
+                d.style.animationDelay = (Math.random()*5) + 's';
+                container.appendChild(d);
+            }
+        }
+
+        function loadLevel() {
+            isPaused = false;
+            activeOddButton = null;
+            els.score.innerText = score;
+            els.frame.classList.remove('panic-mode'); // Reset panic
+
+            // 1. ITEMS
+            const idx = (level - 1) % (database.length / 2) * 2;
+            const itemA = database[idx];
+            const itemB = database[idx+1];
+            els.timerIcon.innerText = itemA.icon;
+
+            // 2. RANDOM MODE
+            const modes = ['transform', 'color', 'marker', 'imposter', 'motion'];
+            const currentMode = modes[Math.floor(Math.random() * modes.length)];
+            
+            const modeInfo = {
+                transform: { icon: '📐', text: 'FISIK MIKRO' },
+                color:     { icon: '👁️', text: 'WARNA SAMAR' },
+                marker:    { icon: '👻', text: 'TANDA GHOST' },
+                imposter:  { icon: '🤡', text: 'PENIPU' },
+                motion:    { icon: '🌊', text: 'GERAK HALUS' }
+            };
+            els.modeIcon.innerText = modeInfo[currentMode].icon;
+            els.modeText.innerText = modeInfo[currentMode].text;
+
+            // Voice command singkat padat
+            setTimeout(() => speak(phrases.modes[currentMode]), 200);
+
+            // 3. PREPARE VAR
+            let oddClass = '';
+            let markerHTML = '';
+            let oddMarkerHTML = '';
+
+            if(currentMode === 'transform') {
+                const vars = ['var-tilt', 'var-upside', 'var-flat', 'var-thin', 'var-small'];
+                oddClass = vars[Math.floor(Math.random()*vars.length)];
+            } else if (currentMode === 'color') {
+                const vars = ['var-pale', 'var-bright', 'var-hue', 'var-sepia'];
+                oddClass = vars[Math.floor(Math.random()*vars.length)];
+            } else if (currentMode === 'motion') {
+                const vars = ['var-wiggle', 'var-bounce', 'var-pulse'];
+                oddClass = vars[Math.floor(Math.random()*vars.length)];
+            } else if (currentMode === 'marker') {
+                // Tanda sangat kecil dan transparan
+                const markers = ['•', '▪', '▫', '◦', '∙'];
+                const mIcon = markers[Math.floor(Math.random()*markers.length)];
+                // Posisi acak
+                const pos = ['pos-top-right', 'pos-bottom-left', 'pos-center'];
+                const pClass = pos[Math.floor(Math.random()*pos.length)];
+                oddMarkerHTML = `<span class="extra-marker ${pClass}">${mIcon}</span>`;
+            }
+
+            // 4. GRID
+            const total = 50;
+            const oddIdx = Math.floor(Math.random()*total);
+            els.grid.innerHTML = '';
+
+            for(let i=0; i<total; i++) {
+                const btn = document.createElement('div');
+                btn.className = "grid-item text-4xl sm:text-5xl select-none"; // Font size sedikit lebih kecil biar lebih banyak ruang
+                // Animasi masuk sangat cepat
+                btn.style.animationDelay = (i*0.005)+'s'; 
+                btn.classList.add('anim-pop');
+
+                let currentItem = (i % 2 === 0) ? itemA : itemB;
+                let displayIcon = currentItem.icon;
+                let innerContent = '';
+
+                if (i === oddIdx) {
+                    activeOddButton = btn;
+                    if (currentMode === 'imposter') {
+                        displayIcon = currentItem.fake;
+                    } else {
+                        innerContent = `<span class="emoji-span ${oddClass}">${displayIcon}${oddMarkerHTML}</span>`;
+                    }
+                    
+                    if(currentMode === 'imposter') {
+                         innerContent = `<span class="emoji-span">${displayIcon}</span>`;
+                    }
+                    btn.onclick = () => check(true);
+                } else {
+                    innerContent = `<span class="emoji-span">${displayIcon}${markerHTML}</span>`;
+                    btn.onclick = () => check(false);
+                }
+
+                btn.innerHTML = innerContent;
+                els.grid.appendChild(btn);
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timer = 5.0; // 5 DETIK HARDCORE
+            maxTime = 5.0;
+            updateTimeUI();
+            
+            // Loop lebih cepat (100ms) untuk update UI yang smooth dan panic mode
+            timerInterval = setInterval(() => {
+                if(isPaused) return;
+                timer -= 0.1;
+                
+                // Bunyi setiap detik penuh
+                if(Math.abs(timer % 1) < 0.1) playSound('tick');
+                
+                updateTimeUI();
+                
+                // Panic Mode di 2 detik terakhir
+                if(timer <= 2.0 && !els.frame.classList.contains('panic-mode')) {
+                    els.frame.classList.add('panic-mode');
+                }
+
+                if(timer <= 0) {
+                    clearInterval(timerInterval);
+                    reveal(true); 
+                }
+            }, 100);
+        }
+
+        function updateTimeUI() {
+            const pct = Math.max(0, (timer/maxTime)*100);
+            els.timerBar.style.height = pct+'%';
+            els.timerIcon.style.bottom = pct+'%';
+            // Warna bar berubah jadi merah darah
+            if(timer < 2) els.timerBar.style.background = 'linear-gradient(to top, #ff0000, #500000)';
+        }
+
+        function check(isCorrect) {
+            if(isPaused) return;
+            if(!isCorrect) {
+                clearInterval(timerInterval);
+                showFeedback(false);
+                speak(getQuote('fail'), 'sad');
+            } else {
+                clearInterval(timerInterval);
+                playSound('win');
+                showFeedback(true);
+                const praise = getQuote('win');
+                setTimeout(() => speak(praise, 'excited'), 200);
+            }
+        }
+
+        function showFeedback(success) {
+            isPaused = true;
+            els.frame.classList.remove('panic-mode');
+            els.overlay.classList.remove('hidden');
+            
+            if(success) {
+                els.ovText.innerText = "KETEMU!";
+                els.ovText.className = "text-8xl font-black text-white drop-shadow-[0_0_20px_rgba(0,255,0,0.8)] animate-bounce";
+                els.ovSub.innerText = getQuote('win');
+                els.ovSub.className = "text-3xl font-bold text-green-400 animate-pulse";
+                // Skor berbasis sisa waktu (presisi desimal)
+                score += Math.floor(100 + (timer*50));
+            } else {
+                els.ovText.innerText = "SALAH!";
+                els.ovText.className = "text-8xl font-black text-red-600 drop-shadow-[0_0_20px_rgba(255,0,0,0.8)] animate-pulse";
+                els.ovSub.innerText = "";
+            }
+            els.finalScore.innerText = score;
+
+            setTimeout(() => {
+                els.overlay.classList.add('hidden');
+                if(success) {
+                    level++;
+                    loadLevel();
+                } else {
+                    // Di God Mode, kalah = game over? 
+                    // Biar seru, kita tetap lanjut level tapi skor ga nambah
+                    level++;
+                    loadLevel();
+                }
+            }, 2000);
+        }
+
+        function reveal() {
+            isPaused = true;
+            els.frame.classList.remove('panic-mode');
+            if(activeOddButton) activeOddButton.classList.add('reveal-odd');
+            setTimeout(() => {
+                level++;
+                loadLevel();
+            }, 1500);
+        }
+
+        window.startGame = startGame;
+    </script>
+</body>
+</html>
