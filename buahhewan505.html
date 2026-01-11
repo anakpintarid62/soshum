@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Campuran Variatif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* FRAME 16:9 */
+        #game-frame {
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16/9;
+            background: radial-gradient(circle at center, #2e1065 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 8px solid #4c1d95;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ANIMASI KONTAINER BERGOYANG */
+        @keyframes swayBox {
+            0% { transform: rotate(0deg) translateY(0px); }
+            25% { transform: rotate(0.5deg) translateY(-2px); }
+            50% { transform: rotate(0deg) translateY(0px); }
+            75% { transform: rotate(-0.5deg) translateY(2px); }
+            100% { transform: rotate(0deg) translateY(0px); }
+        }
+
+        .container-dynamic {
+            animation: swayBox 8s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        /* ANIMASI POP-IN */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .anim-pop { animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        /* ANIMASI REVEAL */
+        @keyframes jedagJedug {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); border-color: rgba(239, 68, 68, 0.8); }
+            50% { transform: scale(1.2); box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0); border-color: rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); border-color: rgba(239, 68, 68, 0.8); }
+        }
+
+        .reveal-odd {
+            border: 4px solid #ef4444 !important;
+            border-radius: 50%;
+            animation: jedagJedug 0.8s infinite !important;
+            z-index: 50;
+            background-color: white !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+        }
+
+        /* CSS VARIATIONS (FISIK) */
+        .emoji-span {
+            display: inline-block;
+            transition: transform 0.3s;
+            position: relative;
+            z-index: 10;
+        }
+
+        .variant-tilt { transform: rotate(30deg); }
+        .variant-scale { transform: scale(0.65); }
+        .variant-skew { transform: skew(-20deg); }
+        .variant-pale { filter: saturate(0.4) opacity(0.85); }
+        .variant-bright { filter: brightness(1.4); }
+        .variant-flip { transform: scaleX(-1); } /* Cermin */
+        .variant-blur { filter: blur(2px); } /* Buram sedikit */
+
+        /* MARKER OVERLAYS (AKSESORIS) */
+        .extra-marker {
+            position: absolute;
+            font-size: 0.6em;
+            pointer-events: none;
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+            z-index: 20;
+            opacity: 0.9;
+        }
+        
+        .pos-1 { top: -8px; right: -8px; transform: rotate(15deg); }
+        .pos-2 { top: -8px; left: -8px; transform: rotate(-45deg); }
+
+        /* ANIMASI BACKGROUND MELAYANG */
+        @keyframes floatUp {
+            0% { transform: translateY(120%) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-120%) rotate(360deg); opacity: 0; }
+        }
+
+        .floating-item {
+            position: absolute;
+            bottom: -50px;
+            animation: floatUp linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: grayscale(30%);
+            opacity: 0.1;
+        }
+
+        /* ITEM STYLING */
+        .grid-item {
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            aspect-ratio: 1;
+            border: 2px solid transparent;
+            z-index: 10;
+            position: relative;
+        }
+        .grid-item:hover {
+            transform: scale(1.15);
+            background-color: #f3f4f6;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .grid-item:active {
+            transform: scale(0.9);
+        }
+
+        /* TIMER BAR VERTICAL */
+        .timer-progress {
+            transition: height 1s linear;
+        }
+
+        /* TIMER EMOJI INDICATOR */
+        .timer-indicator {
+            transition: bottom 1s linear;
+            z-index: 20;
+            left: 50%;
+            transform: translate(-50%, 50%);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-frame">
+        
+        <!-- INTRO SCREEN -->
+        <div id="start-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-indigo-950/95 backdrop-blur-sm text-white">
+            <div class="flex gap-4 mb-6 text-7xl animate-bounce">
+                <span>🦊</span><span>🍄</span><span>🕵️</span><span>🍅</span>
+            </div>
+            <h1 class="text-6xl font-bold mb-2 uppercase tracking-wider text-green-400 drop-shadow-lg text-center" style="text-shadow: 2px 2px 0px #064e3b;">TEBAK VARIATIF</h1>
+            <p class="text-2xl mb-8 font-semibold text-gray-300">Cari item aneh, aksesoris beda, atau penyamaran!</p>
+            <button id="btn-start" onclick="startGame()" class="bg-green-600 hover:bg-green-500 text-white text-3xl font-bold py-4 px-12 rounded-full border-b-8 border-green-800 active:border-b-0 active:translate-y-2 transition-all shadow-xl hover:scale-105">
+                MULAI TANTANGAN
+            </button>
+        </div>
+
+        <!-- GAMEPLAY SCREEN -->
+        <div id="game-screen" class="flex flex-col h-full w-full hidden">
+            
+            <!-- TOP BAR (HEADER) -->
+            <div class="relative w-full h-24 bg-black/30 backdrop-blur-md border-b border-white/10 shrink-0 overflow-hidden">
+                <!-- Header Floating Container -->
+                <div id="header-floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full"></div>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div class="flex-1 w-full flex flex-row items-stretch justify-center p-6 gap-6 relative max-w-6xl mx-auto">
+                
+                <!-- White Container (GRID) -->
+                <div class="flex-1 bg-white rounded-[2rem] p-4 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)] border-8 border-white/20 relative z-10 flex items-center justify-center overflow-hidden container-dynamic">
+                    
+                    <!-- Background Floating Container -->
+                    <div id="floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full"></div>
+
+                    <!-- The Grid Container -->
+                    <div id="emoji-grid" class="grid grid-cols-10 gap-1 md:gap-3 w-full relative z-10">
+                        <!-- Items generated by JS -->
+                    </div>
+
+                </div>
+
+                <!-- Timer Bar (VERTICAL - Kanan) -->
+                <div class="w-20 relative flex flex-col items-center">
+                    <!-- Container Bar -->
+                    <div class="w-full h-full bg-gray-900/50 rounded-full border-4 border-white/30 shadow-[0_0_20px_rgba(0,0,0,0.4)] relative overflow-visible">
+                        
+                        <!-- Inner Container (Clipped Progress Bar) -->
+                        <div class="absolute bottom-0 left-0 w-full h-full rounded-full overflow-hidden">
+                            <div id="timer-bar" class="timer-progress absolute bottom-0 left-0 w-full bg-gradient-to-t from-green-400 via-yellow-400 to-red-500 shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]" style="height: 100%;"></div>
+                        </div>
+
+                        <!-- Emoji Indicator -->
+                        <div id="timer-indicator" class="timer-indicator absolute text-5xl filter drop-shadow-lg" style="bottom: 100%;">
+                            🦁
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Feedback Overlay -->
+                <div id="feedback-overlay" class="hidden absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-[2rem]">
+                    <div class="text-center">
+                        <div id="feedback-text" class="text-8xl font-bold text-white uppercase drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] animate-bounce text-center leading-tight">
+                            KETEMU!
+                        </div>
+                        <!-- Subtext Motivation -->
+                        <div id="feedback-subtext" class="text-3xl font-semibold text-yellow-300 mt-6 drop-shadow-md animate-pulse">
+                            <!-- Text disuntikkan via JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div id="result-screen" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-purple-900 text-white">
+            <div class="bg-white/10 p-12 rounded-3xl backdrop-blur-md border border-white/20 text-center shadow-2xl max-w-2xl w-full animate-pop">
+                <div class="text-yellow-400 text-8xl mb-4">🏆</div>
+                <h2 class="text-5xl font-bold mb-2">HASIL AKHIR</h2>
+                <p class="text-xl text-purple-200 mb-8">Petualangan selesai!</p>
+                
+                <div class="bg-purple-800 p-8 rounded-2xl border-b-8 border-purple-950 mb-8">
+                    <div class="text-purple-300 text-lg uppercase font-bold tracking-widest mb-2">Skor Akhir</div>
+                    <div class="text-6xl font-bold text-white" id="final-score">0</div>
+                </div>
+
+                <button onclick="startGame()" class="w-full bg-yellow-500 hover:bg-yellow-400 text-yellow-900 text-2xl font-bold py-4 rounded-xl border-b-8 border-yellow-700 active:border-b-0 active:translate-y-2 transition-all">
+                    MAIN LAGI
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATABASE CERDAS (HEWAN & BUAH + LOOKALIKES) ---
+        // lookalike: ikon yang mirip untuk mode "Penyamaran"
+        const itemsData = [
+            { name: "Singa", icon: "🦁", type: "animal", lookalike: "🐯" }, // Mirip Macan
+            { name: "Jeruk", icon: "🍊", type: "fruit", lookalike: "🍑" }, // Mirip Persik
+            { name: "Katak", icon: "🐸", type: "animal", lookalike: "🐢" }, // Hijau seperti Kura-kura
+            { name: "Apel Hijau", icon: "🍏", type: "fruit", lookalike: "🍐" }, // Mirip Pir
+            { name: "Kepiting", icon: "🦀", type: "animal", lookalike: "🦞" }, // Mirip Lobster
+            { name: "Apel Merah", icon: "🍎", type: "fruit", lookalike: "🍅" }, // Mirip Tomat
+            { name: "Ayam", icon: "🐥", type: "animal", lookalike: "🐣" }, // Mirip Anak Ayam
+            { name: "Lemon", icon: "🍋", type: "fruit", lookalike: "🍌" }, // Kuning
+            { name: "Beruang", icon: "🐻", type: "animal", lookalike: "🐶" }, // Coklat
+            { name: "Kiwi", icon: "🥝", type: "fruit", lookalike: "🍈" }, // Hijau
+            { name: "Babi", icon: "🐷", type: "animal", lookalike: "🐽" }, // Hidung Babi
+            { name: "Persik", icon: "🍑", type: "fruit", lookalike: "🍊" }, 
+            { name: "Buaya", icon: "🐊", type: "animal", lookalike: "🐉" }, // Naga
+            { name: "Alpukat", icon: "🥑", type: "fruit", lookalike: "🍐" }, 
+            { name: "Rubah", icon: "🦊", type: "animal", lookalike: "🐺" }, 
+            { name: "Wortel", icon: "🥕", type: "fruit", lookalike: "🍠" }, 
+            { name: "Gurita", icon: "🐙", type: "animal", lookalike: "🦑" }, 
+            { name: "Cabai", icon: "🌶️", type: "fruit", lookalike: "🧧" }, // Amplop merah (jebakan visual)
+            { name: "Lebah", icon: "🐝", type: "animal", lookalike: "🪰" }, 
+            { name: "Pisang", icon: "🍌", type: "fruit", lookalike: "🌙" }, // Bulan sabit
+            { name: "Kelinci", icon: "🐰", type: "animal", lookalike: "🐭" }, 
+            { name: "Bawang Putih", icon: "🧄", type: "fruit", lookalike: "🧅" }, 
+            { name: "Monyet", icon: "🐵", type: "animal", lookalike: "🙉" }, 
+            { name: "Kelapa", icon: "🥥", type: "fruit", lookalike: "🥝" }, 
+            { name: "Kura-kura", icon: "🐢", type: "animal", lookalike: "🐍" }, // Hijau
+            { name: "Melon", icon: "🍈", type: "fruit", lookalike: "🎾" }, // Bola Tenis
+            { name: "Flamingo", icon: "🦩", type: "animal", lookalike: "🦢" }, 
+            { name: "Semangka", icon: "🍉", type: "fruit", lookalike: "🍕" }, // Pizza
+            { name: "Harimau", icon: "🐯", type: "animal", lookalike: "🐱" }, // Kucing
+            { name: "Labu", icon: "🎃", type: "fruit", lookalike: "🏀" }, // Bola Basket
+            { name: "Tikus", icon: "🐭", type: "animal", lookalike: "🐹" }, 
+            { name: "Jamur", icon: "🍄", type: "fruit", lookalike: "☂️" }, // Payung
+            { name: "Ulat", icon: "🐛", type: "animal", lookalike: "🐉" }, 
+            { name: "Timun", icon: "🥒", type: "fruit", lookalike: "🌭" }, 
+            { name: "Kuda Poni", icon: "🦄", type: "animal", lookalike: "🐴" }, 
+            { name: "Anggur", icon: "🍇", type: "fruit", lookalike: "🫐" }, 
+            { name: "Kumbang", icon: "🐞", type: "animal", lookalike: "🔴" }, 
+            { name: "Stroberi", icon: "🍓", type: "fruit", lookalike: "🌹" }, 
+            { name: "Jerapah", icon: "🦒", type: "animal", lookalike: "🐆" }, 
+            { name: "Jagung", icon: "🌽", type: "fruit", lookalike: "🍌" } 
+        ];
+
+        // --- AUDIO SYSTEM ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        try { audioCtx = new AudioContext(); } catch (e) { }
+        
+        function playTickSound(timeLeft) {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume().catch(e=>{});
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const pitch = 600 + ((10 - timeLeft) * 100); 
+            const volume = 0.1 + ((10 - timeLeft) * 0.04);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function playSuccessSound() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume().catch(e=>{});
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+            gain1.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            osc1.start();
+            osc1.stop(audioCtx.currentTime + 0.5);
+            setTimeout(() => {
+                if (!audioCtx) return;
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1046.50, audioCtx.currentTime); 
+                gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.6);
+            }, 100);
+        }
+
+        // --- VOICE HOST ---
+        const host = window.speechSynthesis;
+        let hostVoice = null;
+        function initVoice() {
+            if (!host) return;
+            const voices = host.getVoices();
+            hostVoice = voices.find(v => v.lang.includes('id')) || voices[0];
+        }
+        if (host && host.onvoiceschanged !== undefined) host.onvoiceschanged = initVoice;
+
+        function speak(text, type = 'normal') {
+            if (!host) return;
+            if (!hostVoice) initVoice();
+            host.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (hostVoice) utterance.voice = hostVoice;
+            utterance.lang = 'id-ID';
+            const randomRate = 1.0 + (Math.random() * 0.3);
+            const randomPitch = 0.9 + (Math.random() * 0.4);
+            utterance.rate = randomRate;
+            utterance.pitch = randomPitch;
+            if (type === 'excited') {
+                utterance.rate = 1.2 + (Math.random() * 0.2); 
+                utterance.pitch = 1.2 + (Math.random() * 0.3); 
+            } else if (type === 'sad') {
+                utterance.rate = 0.8 + (Math.random() * 0.2); 
+                utterance.pitch = 0.7 + (Math.random() * 0.2); 
+            }
+            host.speak(utterance);
+        }
+
+        // --- KAMUS KATA ---
+        const phrases = {
+            correct: ["Mantap!", "Mata elang!", "Keren!", "Jagoan!", "Gokil!", "Savage!", "Gaspol!", "Hebat!"],
+            wrong: ["Salah!", "Coba lagi!", "Meleset!", "Aduh!", "Bukan!", "Fokus!"],
+            intro: ["Siap-siap!", "Ayo mulai!", "Fokus!", "Lets go!"],
+            levelStart: ["Cari yang aneh!", "Mana yang beda?", "Ayo temukan!", "Cek matamu!"],
+            motivation: ["Lanjut!", "Sikat!", "On fire!", "Gasss!", "Lagi!"]
+        };
+        function getRandomPhrase(type) {
+            return phrases[type][Math.floor(Math.random() * phrases[type].length)];
+        }
+
+        // --- VARIABLES ---
+        let currentLevel = 0;
+        let score = 0;
+        let timer = 10;
+        let timerInterval;
+        let currentOddBtn = null; 
+        let isRevealing = false; 
+
+        // --- DOM ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const timerBar = document.getElementById('timer-bar');
+        const timerIndicator = document.getElementById('timer-indicator');
+        const emojiGrid = document.getElementById('emoji-grid');
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackSubText = document.getElementById('feedback-subtext'); 
+        const floatingBg = document.getElementById('floating-bg');
+        const headerFloatingBg = document.getElementById('header-floating-bg');
+        const finalScoreEl = document.getElementById('final-score');
+
+        // --- ANIMATIONS ---
+        function createFloatingItems() {
+            floatingBg.innerHTML = ''; 
+            const bgItems = ["🍎", "🦁", "🍇", "🐯", "🍍", "🐨", "🍒", "🐼"];
+            for (let i = 0; i < 15; i++) {
+                const el = document.createElement('div');
+                el.innerText = bgItems[Math.floor(Math.random() * bgItems.length)];
+                el.className = 'floating-item';
+                el.style.left = `${Math.random() * 95}%`; 
+                el.style.fontSize = `${Math.random() * 3 + 2}rem`; 
+                el.style.animationDuration = `${Math.random() * 10 + 8}s`; 
+                el.style.animationDelay = `${Math.random() * 10}s`; 
+                floatingBg.appendChild(el);
+            }
+        }
+        function createHeaderFloatingItems() {
+            headerFloatingBg.innerHTML = ''; 
+            const bgItems = ["🍏", "🐸", "🦀", "🍎", "🥕", "🦊", "🥑", "🐊"];
+            for (let i = 0; i < 12; i++) {
+                const el = document.createElement('div');
+                el.innerText = bgItems[Math.floor(Math.random() * bgItems.length)];
+                el.className = 'floating-item';
+                el.style.left = `${Math.random() * 95}%`; 
+                el.style.fontSize = `${Math.random() * 2 + 1.5}rem`; 
+                el.style.animationDuration = `${Math.random() * 5 + 4}s`; 
+                el.style.animationDelay = `${Math.random() * 5}s`; 
+                headerFloatingBg.appendChild(el);
+            }
+        }
+        function addExtraMarker(parent, positionClass, itemType, markerType) {
+            const marker = document.createElement('span');
+            // Pilih marker: Jejak/Daun/Air/Bintang
+            let icon = "🍃";
+            if (markerType === 'paw') icon = "🐾";
+            else if (markerType === 'water') icon = "💧";
+            else if (markerType === 'star') icon = "⭐";
+            else icon = (itemType === 'animal') ? "🐾" : "🍃"; // Default
+
+            marker.innerText = icon; 
+            marker.className = `extra-marker ${positionClass}`;
+            parent.appendChild(marker);
+        }
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            createFloatingItems(); 
+            createHeaderFloatingItems();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(e=>{});
+            speak("Selamat datang! " + getRandomPhrase('intro'), 'excited');
+            score = 0;
+            currentLevel = 1;
+            loadLevel();
+        }
+
+        function loadLevel() {
+            isRevealing = false;
+            currentOddBtn = null;
+
+            // 1. Pilih Item A & B
+            const itemIndex = (currentLevel - 1) % (itemsData.length / 2) * 2; // Ambil pasangan
+            const item1 = itemsData[itemIndex];
+            const item2 = itemsData[itemIndex + 1];
+            
+            // Indikator timer ganti-ganti
+            if (timerIndicator) timerIndicator.innerText = item1.icon;
+            
+            setTimeout(() => {
+                const introWord = getRandomPhrase('levelStart');
+                speak(introWord, 'normal');
+            }, 500);
+
+            // 2. Tentukan GAME MODE (3 Tipe)
+            // 0 = Transform (Fisik), 1 = Marker (Aksesoris), 2 = Imposter (Penyamaran)
+            const gameMode = Math.floor(Math.random() * 3);
+            
+            // Setup Variabel untuk Mode
+            let selectedVariation = '';
+            let markerType = '';
+            let isImposterMode = (gameMode === 2);
+
+            if (gameMode === 0) {
+                // Mode Fisik
+                const vars = ['variant-tilt', 'variant-scale', 'variant-skew', 'variant-pale', 'variant-bright', 'variant-flip', 'variant-blur'];
+                selectedVariation = vars[Math.floor(Math.random() * vars.length)];
+            } else if (gameMode === 1) {
+                // Mode Marker
+                const markers = ['default', 'water', 'star'];
+                markerType = markers[Math.floor(Math.random() * markers.length)];
+            }
+
+            const totalItems = 50;
+            const oddPosition = Math.floor(Math.random() * totalItems);
+
+            emojiGrid.innerHTML = ""; 
+
+            // 3. Generate Grid (Pola Selang Seling A-B-A-B)
+            for (let i = 0; i < totalItems; i++) {
+                const btn = document.createElement('div');
+                btn.className = "grid-item text-3xl sm:text-4xl lg:text-5xl select-none flex items-center justify-center"; 
+                btn.style.animationDelay = `${i * 0.005}s`;
+                btn.classList.add('anim-pop');
+
+                let currentItem = (i % 2 === 0) ? item1 : item2;
+                let displayIcon = currentItem.icon;
+
+                // LOGIKA IMPOSTER (Ganti Ikon)
+                if (isImposterMode && i === oddPosition) {
+                    displayIcon = currentItem.lookalike;
+                }
+
+                const span = document.createElement('span');
+                span.innerText = displayIcon;
+                span.className = "emoji-span"; 
+
+                if (i === oddPosition) {
+                    // === ITEM ANEH ===
+                    btn.onclick = () => handleAnswer(true);
+                    currentOddBtn = btn;
+                    
+                    if (gameMode === 0) { // Transform
+                        span.classList.add(selectedVariation);
+                    } else if (gameMode === 1) { // Marker
+                        // Odd item has 2 markers (or 0 if logic flipped, lets keep it simple: Odd has EXTRA marker)
+                        // Wait, previous logic was "Amount difference". Let's do: Normal=0, Odd=1 marker.
+                        addExtraMarker(span, 'pos-1', currentItem.type, markerType);
+                    }
+                    // Imposter mode already handled by icon change
+
+                } else {
+                    // === ITEM NORMAL ===
+                    btn.onclick = () => handleAnswer(false);
+                    // Normal item has no extra class/marker/change
+                }
+
+                btn.appendChild(span);
+                emojiGrid.appendChild(btn);
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timer = 10;
+            updateTimerUI();
+            timerInterval = setInterval(() => {
+                timer--;
+                playTickSound(timer);
+                updateTimerUI();
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    revealAnswer(); 
+                }
+            }, 1000);
+        }
+
+        function revealAnswer() {
+            isRevealing = true;
+            if (currentOddBtn) currentOddBtn.classList.add('reveal-odd');
+            setTimeout(() => {
+                currentLevel++;
+                loadLevel();
+            }, 2000);
+        }
+
+        function updateTimerUI() {
+            const pct = (timer / 10) * 100;
+            timerBar.style.height = pct + "%";
+            timerIndicator.style.bottom = pct + "%";
+            timerBar.className = "timer-progress absolute bottom-0 left-0 w-full bg-gradient-to-t shadow-[inset_0_2px_10px_rgba(255,255,255,0.3)]";
+            if (timer > 6) timerBar.classList.add('from-green-400', 'to-green-600');
+            else if (timer > 3) timerBar.classList.add('from-yellow-400', 'to-orange-500');
+            else timerBar.classList.add('from-red-500', 'to-red-700');
+        }
+
+        function handleAnswer(isCorrect) {
+            if (isRevealing) return; 
+            if (!isCorrect) {
+                clearInterval(timerInterval);
+                showFeedback(false, "SALAH! ❌");
+                speak(getRandomPhrase('wrong'), 'sad');
+                return;
+            }
+            clearInterval(timerInterval);
+            playSuccessSound();
+            const praise = getRandomPhrase('correct');
+            const motivation = getRandomPhrase('motivation');
+            showFeedback(true, "KETEMU! 🎉", motivation);
+            setTimeout(() => { speak(`${praise} ${motivation}`, 'excited'); }, 300);
+        }
+
+        function showFeedback(isCorrect, mainText = "", subText = "") {
+            feedbackOverlay.classList.remove('hidden');
+            feedbackText.innerText = mainText;
+            if (isCorrect) {
+                feedbackText.className = "text-6xl md:text-8xl font-bold text-green-400 drop-shadow-[0_5px_5px_rgba(0,0,0,1)] animate-bounce text-center";
+                if(feedbackSubText) {
+                    feedbackSubText.innerText = subText;
+                    feedbackSubText.classList.remove('hidden');
+                }
+                score += 100 + (timer * 10);
+            } else {
+                feedbackText.className = "text-6xl md:text-8xl font-bold text-red-500 drop-shadow-[0_5px_5px_rgba(0,0,0,1)] animate-pulse text-center";
+                if(feedbackSubText) feedbackSubText.classList.add('hidden'); 
+            }
+            if(finalScoreEl) finalScoreEl.innerText = score;
+            setTimeout(() => {
+                feedbackOverlay.classList.add('hidden');
+                currentLevel++;
+                loadLevel();
+            }, 3500); 
+        }
+
+        window.startGame = startGame;
+    </script>
+</body>
+</html>
