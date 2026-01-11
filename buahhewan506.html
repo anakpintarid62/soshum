@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Variasi Ultimate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* FRAME 16:9 */
+        #game-frame {
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16/9;
+            /* Background akan di-set lewat JS agar berubah-ubah */
+            background: radial-gradient(circle at center, #2e1065 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 8px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: background 1s ease;
+        }
+
+        /* ANIMASI UMUM */
+        .container-dynamic {
+            animation: swayBox 8s ease-in-out infinite;
+            transform-origin: center center;
+        }
+        @keyframes swayBox {
+            0%, 100% { transform: rotate(0deg) translateY(0px); }
+            25% { transform: rotate(0.5deg) translateY(-2px); }
+            50% { transform: rotate(0deg) translateY(0px); }
+            75% { transform: rotate(-0.5deg) translateY(2px); }
+        }
+        
+        .anim-pop { animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* REVEAL ANIMATION */
+        .reveal-odd {
+            border: 4px solid #ef4444 !important;
+            border-radius: 50%;
+            animation: jedagJedug 0.8s infinite !important;
+            z-index: 50;
+            background-color: white !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.9);
+        }
+        @keyframes jedagJedug {
+            0%, 100% { transform: scale(1); border-color: rgba(239, 68, 68, 0.8); }
+            50% { transform: scale(1.2); border-color: rgba(239, 68, 68, 0); }
+        }
+
+        /* === 5 MODE VARIASI === */
+        
+        .emoji-span {
+            display: inline-block;
+            transition: transform 0.3s, filter 0.3s;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 1. MODE FISIK (TRANSFORM) */
+        .var-tilt { transform: rotate(25deg); }
+        .var-upside { transform: rotate(180deg); }
+        .var-flat { transform: scaleY(0.6); } /* Gepeng */
+        .var-thin { transform: scaleX(0.6); } /* Kurus */
+        .var-small { transform: scale(0.65); }
+
+        /* 2. MODE WARNA (COLOR) */
+        .var-pale { filter: saturate(0.2); } /* Pucat */
+        .var-bright { filter: brightness(1.5) saturate(1.2); } /* Silau */
+        .var-hue { filter: hue-rotate(45deg); } /* Warna geser (misal Merah -> Orange) */
+        .var-invert { filter: invert(1) hue-rotate(180deg); } /* Warna negatif */
+
+        /* 3. MODE GERAK (MOTION) */
+        @keyframes wiggle { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
+        .var-wiggle { animation: wiggle 0.3s infinite; }
+        
+        @keyframes bounce-mini { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .var-bounce { animation: bounce-mini 0.6s infinite; }
+        
+        @keyframes pulse-mini { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.8); } }
+        .var-pulse { animation: pulse-mini 0.8s infinite; }
+
+        /* 4. MODE AKSESORIS (MARKER) - Dihandle via JS adding element */
+        .extra-marker {
+            position: absolute;
+            font-size: 0.6em;
+            pointer-events: none;
+            filter: drop-shadow(1px 1px 0px rgba(255,255,255,0.8)); /* Outline putih biar jelas */
+            z-index: 20;
+            animation: popIn 0.3s ease-out;
+        }
+        .pos-top-right { top: -8px; right: -8px; transform: rotate(15deg); }
+        .pos-top-left { top: -8px; left: -8px; transform: rotate(-15deg); }
+        .pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.8; }
+
+        /* 5. MODE IMPOSTER - Dihandle via JS icon swap */
+
+        /* BACKGROUND FLOATING */
+        .floating-item {
+            position: absolute;
+            bottom: -50px;
+            animation: floatUp linear infinite;
+            pointer-events: none;
+            z-index: 0;
+            filter: grayscale(30%);
+            opacity: 0.15;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(120%) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.2; }
+            90% { opacity: 0.2; }
+            100% { transform: translateY(-120%) rotate(360deg); opacity: 0; }
+        }
+
+        /* GRID ITEM */
+        .grid-item {
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            aspect-ratio: 1;
+            z-index: 10;
+            position: relative;
+        }
+        .grid-item:hover {
+            transform: scale(1.1);
+            background-color: rgba(255,255,255,0.2);
+        }
+        .grid-item:active { transform: scale(0.95); }
+
+        /* TIMER & UI */
+        .timer-progress { transition: height 1s linear; }
+        .timer-indicator { transition: bottom 1s linear; z-index: 20; left: 50%; transform: translate(-50%, 50%); }
+    </style>
+</head>
+<body>
+
+    <div id="game-frame">
+        
+        <!-- START SCREEN -->
+        <div id="start-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md text-white p-8 text-center">
+            <div class="flex gap-4 mb-6 text-7xl animate-bounce">
+                <span>🎭</span><span>🎲</span><span>🎯</span><span>🚀</span>
+            </div>
+            <h1 class="text-6xl font-black mb-2 uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 filter drop-shadow-lg">ULTIMATE MIX</h1>
+            <p class="text-2xl mb-8 font-light text-gray-300 max-w-2xl">
+                Tiap level beda aturan! Cari yang <strong class="text-yellow-400">miring</strong>, <strong class="text-blue-400">beda warna</strong>, <strong class="text-green-400">pakai topi</strong>, atau <strong class="text-pink-400">bergerak sendiri</strong>!
+            </p>
+            <button onclick="startGame()" class="group relative px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full text-2xl font-bold shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:scale-105 transition-all">
+                <span class="relative z-10">GAS MULAI! 🚀</span>
+                <div class="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            </button>
+        </div>
+
+        <!-- GAMEPLAY SCREEN -->
+        <div id="game-screen" class="flex flex-col h-full w-full hidden">
+            
+            <!-- HEADER (ANIMATED) -->
+            <div class="relative w-full h-20 bg-white/10 backdrop-blur-sm border-b border-white/10 shrink-0 overflow-hidden flex items-center justify-between px-8">
+                <!-- Info Mode (Kiri) -->
+                <div id="mode-display" class="relative z-10 bg-black/40 text-white px-4 py-1 rounded-lg border border-white/20 text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                    <span id="mode-icon">❓</span> <span id="mode-text">RANDOM MODE</span>
+                </div>
+
+                <!-- Floating BG Header -->
+                <div id="header-floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full opacity-50"></div>
+                
+                <!-- Score (Kanan) -->
+                <div class="relative z-10 text-right">
+                    <div class="text-xs text-gray-300 uppercase">Total Skor</div>
+                    <div class="text-2xl font-black text-yellow-400" id="score-display">0</div>
+                </div>
+            </div>
+
+            <!-- MAIN AREA -->
+            <div class="flex-1 w-full flex flex-row items-stretch justify-center p-4 gap-6 relative max-w-7xl mx-auto">
+                
+                <!-- GRID CONTAINER -->
+                <div class="flex-1 bg-white/90 rounded-[2rem] p-4 shadow-2xl border-4 border-white/50 relative z-10 flex items-center justify-center overflow-hidden container-dynamic backdrop-blur-lg">
+                    <div id="floating-bg" class="absolute inset-0 z-0 pointer-events-none w-full h-full"></div>
+                    
+                    <!-- THE GRID -->
+                    <div id="emoji-grid" class="grid grid-cols-10 gap-2 w-full relative z-10">
+                        <!-- JS generated items -->
+                    </div>
+                </div>
+
+                <!-- TIMER SIDEBAR -->
+                <div class="w-24 relative flex flex-col items-center justify-center">
+                    <div class="w-full h-full bg-black/40 rounded-full border-4 border-white/20 shadow-inner relative overflow-visible">
+                        <!-- Liquid Bar -->
+                        <div class="absolute bottom-0 left-0 w-full h-full rounded-full overflow-hidden">
+                            <div id="timer-bar" class="timer-progress absolute bottom-0 left-0 w-full bg-gradient-to-t from-green-400 via-yellow-400 to-red-500" style="height: 100%;"></div>
+                        </div>
+                        <!-- Indicator -->
+                        <div id="timer-indicator" class="timer-indicator absolute text-6xl filter drop-shadow-lg" style="bottom: 100%;">🦁</div>
+                    </div>
+                </div>
+
+                <!-- FEEDBACK OVERLAY -->
+                <div id="feedback-overlay" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md rounded-[2rem]">
+                    <div class="text-center transform transition-all scale-110">
+                        <div id="feedback-text" class="text-8xl font-black text-white uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] animate-bounce mb-2">
+                            KETEMU!
+                        </div>
+                        <div id="feedback-subtext" class="text-3xl font-bold text-yellow-300 uppercase tracking-widest animate-pulse">
+                            Luar Biasa!
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div id="result-screen" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 text-white">
+            <div class="bg-gradient-to-br from-purple-900 to-blue-900 p-12 rounded-3xl border-4 border-white/20 text-center shadow-2xl max-w-2xl w-full animate-pop">
+                <div class="text-8xl mb-4">🏆</div>
+                <h2 class="text-5xl font-bold mb-4">PERMAINAN SELESAI</h2>
+                <div class="bg-black/30 p-6 rounded-xl mb-8">
+                    <div class="text-gray-300 text-sm uppercase">Skor Akhir</div>
+                    <div class="text-6xl font-black text-yellow-400" id="final-score">0</div>
+                </div>
+                <button onclick="startGame()" class="w-full bg-white text-purple-900 text-2xl font-bold py-4 rounded-xl hover:bg-gray-100 transition-all shadow-lg transform hover:-translate-y-1">
+                    MAIN LAGI
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA CAMPURAN & LOOKALIKES ---
+        // Hewan vs Buah/Objek mirip
+        const database = [
+            { name: "Singa", icon: "🦁", type: "animal", fake: "🐯" }, 
+            { name: "Jeruk", icon: "🍊", type: "fruit", fake: "🍑" },
+            { name: "Katak", icon: "🐸", type: "animal", fake: "🐢" },
+            { name: "Apel Hijau", icon: "🍏", type: "fruit", fake: "🍐" },
+            { name: "Kepiting", icon: "🦀", type: "animal", fake: "🦞" },
+            { name: "Apel Merah", icon: "🍎", type: "fruit", fake: "🍅" },
+            { name: "Ayam", icon: "🐥", type: "animal", fake: "🐣" },
+            { name: "Lemon", icon: "🍋", type: "fruit", fake: "🍌" },
+            { name: "Beruang", icon: "🐻", type: "animal", fake: "🐶" },
+            { name: "Kiwi", icon: "🥝", type: "fruit", fake: "🍈" },
+            { name: "Babi", icon: "🐷", type: "animal", fake: "🐽" },
+            { name: "Persik", icon: "🍑", type: "fruit", fake: "🍊" },
+            { name: "Buaya", icon: "🐊", type: "animal", fake: "🐉" },
+            { name: "Alpukat", icon: "🥑", type: "fruit", fake: "🍐" },
+            { name: "Rubah", icon: "🦊", type: "animal", fake: "🐺" },
+            { name: "Wortel", icon: "🥕", type: "fruit", fake: "🍠" },
+            { name: "Gurita", icon: "🐙", type: "animal", fake: "🦑" },
+            { name: "Cabai", icon: "🌶️", type: "fruit", fake: "🧧" },
+            { name: "Lebah", icon: "🐝", type: "animal", fake: "🪰" },
+            { name: "Pisang", icon: "🍌", type: "fruit", fake: "🌙" },
+            { name: "Kelinci", icon: "🐰", type: "animal", fake: "🐭" },
+            { name: "Bawang", icon: "🧄", type: "fruit", fake: "🧅" },
+            { name: "Monyet", icon: "🐵", type: "animal", fake: "🙉" },
+            { name: "Kelapa", icon: "🥥", type: "fruit", fake: "🥔" },
+            { name: "Kura-kura", icon: "🐢", type: "animal", fake: "🐍" },
+            { name: "Melon", icon: "🍈", type: "fruit", fake: "🎾" },
+            { name: "Semangka", icon: "🍉", type: "fruit", fake: "🍕" },
+            { name: "Harimau", icon: "🐯", type: "animal", fake: "🐱" },
+            { name: "Labu", icon: "🎃", type: "fruit", fake: "🏀" },
+            { name: "Tikus", icon: "🐭", type: "animal", fake: "🐹" },
+            { name: "Jamur", icon: "🍄", type: "fruit", fake: "☂️" },
+            { name: "Ulat", icon: "🐛", type: "animal", fake: "🐉" },
+            { name: "Timun", icon: "🥒", type: "fruit", fake: "🌭" },
+            { name: "Kuda", icon: "🦄", type: "animal", fake: "🐴" },
+            { name: "Anggur", icon: "🍇", type: "fruit", fake: "🫐" },
+            { name: "Kumbang", icon: "🐞", type: "animal", fake: "🔴" },
+            { name: "Stroberi", icon: "🍓", type: "fruit", fake: "🌹" },
+            { name: "Jerapah", icon: "🦒", type: "animal", fake: "🐆" },
+            { name: "Jagung", icon: "🌽", type: "fruit", fake: "🍌" }
+        ];
+
+        // --- GAME STATE ---
+        let level = 0;
+        let score = 0;
+        let timer = 10;
+        let timerInterval;
+        let isPaused = false;
+        let activeOddButton = null;
+
+        // --- DOM ---
+        const els = {
+            start: document.getElementById('start-screen'),
+            game: document.getElementById('game-screen'),
+            result: document.getElementById('result-screen'),
+            grid: document.getElementById('emoji-grid'),
+            timerBar: document.getElementById('timer-bar'),
+            timerIcon: document.getElementById('timer-indicator'),
+            score: document.getElementById('score-display'),
+            finalScore: document.getElementById('final-score'),
+            overlay: document.getElementById('feedback-overlay'),
+            ovText: document.getElementById('feedback-text'),
+            ovSub: document.getElementById('feedback-subtext'),
+            frame: document.getElementById('game-frame'),
+            modeText: document.getElementById('mode-text'),
+            modeIcon: document.getElementById('mode-icon'),
+            floatBg: document.getElementById('floating-bg'),
+            headerBg: document.getElementById('header-floating-bg')
+        };
+
+        // --- AUDIO & VOICE ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        try { audioCtx = new AudioContext(); } catch(e){}
+
+        function playSound(type) {
+            if(!audioCtx) return;
+            if(audioCtx.state === 'suspended') audioCtx.resume().catch(e=>{});
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if(type === 'tick') {
+                const pitch = 600 + ((10-timer)*100);
+                osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1 + ((10-timer)*0.03), audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.1);
+                osc.start(); osc.stop(audioCtx.currentTime+0.1);
+            } else if (type === 'win') {
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.5);
+                osc.start(); osc.stop(audioCtx.currentTime+0.5);
+            }
+        }
+
+        const host = window.speechSynthesis;
+        function speak(text, excitement='normal') {
+            if(!host) return;
+            host.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'id-ID';
+            u.rate = excitement==='excited' ? 1.2 : 1.1;
+            u.pitch = excitement==='excited' ? 1.3 : 1.0;
+            host.speak(u);
+        }
+
+        // --- PHRASES ---
+        const quotes = {
+            win: ["Luar biasa!", "Mata tajam!", "Keren banget!", "Genius!", "Sempurna!", "Lanjut!"],
+            fail: ["Yah salah!", "Coba lagi!", "Aduh!", "Kurang tepat!", "Fokus dong!"],
+            intro: ["Siap tantangan variasi?", "Ayo mulai!", "Tunjukkan skillmu!"],
+            modes: {
+                transform: "Cari yang bentuknya aneh!",
+                color: "Cari yang warnanya beda!",
+                marker: "Cari yang punya aksesoris!",
+                imposter: "Ada penyamar di sini!",
+                motion: "Cari yang bergerak!"
+            }
+        };
+
+        function getQuote(k) { return quotes[k][Math.floor(Math.random()*quotes[k].length)]; }
+
+        // --- CORE GAME ---
+
+        function startGame() {
+            els.start.classList.add('hidden');
+            els.result.classList.add('hidden');
+            els.game.classList.remove('hidden');
+            
+            if(audioCtx && audioCtx.state==='suspended') audioCtx.resume().catch(e=>{});
+            speak("Selamat datang! " + getQuote('intro'), 'excited');
+            
+            initFloater(els.floatBg, 15, '3rem');
+            initFloater(els.headerBg, 10, '2rem');
+
+            score = 0;
+            level = 1;
+            loadLevel();
+        }
+
+        function initFloater(container, count, size) {
+            container.innerHTML = '';
+            const icons = ['🦁','🍎','🦊','🥕','🐸','🍏','🐯','🍊'];
+            for(let i=0; i<count; i++) {
+                const d = document.createElement('div');
+                d.className = 'floating-item';
+                d.innerText = icons[Math.floor(Math.random()*icons.length)];
+                d.style.left = Math.random()*95 + '%';
+                d.style.fontSize = size;
+                d.style.animationDuration = (8 + Math.random()*10) + 's';
+                d.style.animationDelay = (Math.random()*5) + 's';
+                container.appendChild(d);
+            }
+        }
+
+        function loadLevel() {
+            isPaused = false;
+            activeOddButton = null;
+            els.score.innerText = score;
+
+            // 1. SET BACKGROUND ATMOSPHERE (Random Gradient)
+            const hues = [
+                ['#1e1b4b', '#020617'], // Dark Blue
+                ['#4a044e', '#2e1065'], // Purple
+                ['#064e3b', '#022c22'], // Green
+                ['#7f1d1d', '#450a0a'], // Red
+                ['#172554', '#1e3a8a']  // Blue
+            ];
+            const bg = hues[Math.floor(Math.random()*hues.length)];
+            els.frame.style.background = `radial-gradient(circle at center, ${bg[0]} 0%, ${bg[1]} 100%)`;
+
+            // 2. PICK ITEMS (Alternating Pattern A-B)
+            const idx = (level - 1) % (database.length / 2) * 2;
+            const itemA = database[idx];
+            const itemB = database[idx+1];
+            els.timerIcon.innerText = itemA.icon;
+
+            // 3. SELECT RANDOM MODE
+            const modes = ['transform', 'color', 'marker', 'imposter', 'motion'];
+            const currentMode = modes[Math.floor(Math.random() * modes.length)];
+            
+            // Update UI Mode
+            const modeInfo = {
+                transform: { icon: '🌀', text: 'MODE FISIK' },
+                color:     { icon: '🎨', text: 'MODE WARNA' },
+                marker:    { icon: '🎩', text: 'MODE AKSESORIS' },
+                imposter:  { icon: '🕵️', text: 'MODE PENYAMAR' },
+                motion:    { icon: '💃', text: 'MODE GERAK' }
+            };
+            els.modeIcon.innerText = modeInfo[currentMode].icon;
+            els.modeText.innerText = modeInfo[currentMode].text;
+
+            // Speak instruction
+            setTimeout(() => speak(quotes.modes[currentMode]), 500);
+
+            // 4. PREPARE VARIATION CSS/DATA
+            let oddClass = '';
+            let markerHTML = '';
+            let oddMarkerHTML = '';
+
+            if(currentMode === 'transform') {
+                const vars = ['var-tilt', 'var-upside', 'var-flat', 'var-thin', 'var-small'];
+                oddClass = vars[Math.floor(Math.random()*vars.length)];
+            } else if (currentMode === 'color') {
+                const vars = ['var-pale', 'var-bright', 'var-hue', 'var-invert'];
+                oddClass = vars[Math.floor(Math.random()*vars.length)];
+            } else if (currentMode === 'motion') {
+                const vars = ['var-wiggle', 'var-bounce', 'var-pulse'];
+                oddClass = vars[Math.floor(Math.random()*vars.length)];
+            } else if (currentMode === 'marker') {
+                // Logic: Normal items have NO marker (or maybe 1), Odd has different/more.
+                // Simple: Odd item has a unique accessory (Hat, Glasses, etc)
+                const markers = ['👑','🎩','🕶️','🎀','🐾','🍃','⭐'];
+                const mIcon = markers[Math.floor(Math.random()*markers.length)];
+                oddMarkerHTML = `<span class="extra-marker pos-top-right">${mIcon}</span>`;
+            }
+            // Imposter mode handled in loop
+
+            // 5. RENDER GRID
+            const total = 50;
+            const oddIdx = Math.floor(Math.random()*total);
+            els.grid.innerHTML = '';
+
+            for(let i=0; i<total; i++) {
+                const btn = document.createElement('div');
+                btn.className = "grid-item text-4xl sm:text-5xl select-none";
+                btn.style.animationDelay = (i*0.01)+'s';
+                btn.classList.add('anim-pop');
+
+                // Determine base item (A or B)
+                let item = (i % 2 === 0) ? itemA : itemB;
+                let displayIcon = item.icon;
+                let innerContent = '';
+
+                // Is this the odd one?
+                if (i === oddIdx) {
+                    activeOddButton = btn;
+                    
+                    if (currentMode === 'imposter') {
+                        displayIcon = item.fake; // Swap icon
+                    } else {
+                        // Apply CSS class for Transform/Color/Motion
+                        innerContent = `<span class="emoji-span ${oddClass}">${displayIcon}${oddMarkerHTML}</span>`;
+                    }
+                    
+                    if(currentMode === 'imposter') {
+                         innerContent = `<span class="emoji-span">${displayIcon}</span>`;
+                    }
+
+                    btn.onclick = () => check(true);
+                } else {
+                    // Normal Item
+                    innerContent = `<span class="emoji-span">${displayIcon}${markerHTML}</span>`;
+                    btn.onclick = () => check(false);
+                }
+
+                btn.innerHTML = innerContent;
+                els.grid.appendChild(btn);
+            }
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timer = 10;
+            updateTimeUI();
+            timerInterval = setInterval(() => {
+                if(isPaused) return;
+                timer--;
+                playSound('tick');
+                updateTimeUI();
+                if(timer <= 0) {
+                    clearInterval(timerInterval);
+                    reveal(true); // Timeout = Reveal
+                }
+            }, 1000);
+        }
+
+        function updateTimeUI() {
+            const pct = (timer/10)*100;
+            els.timerBar.style.height = pct+'%';
+            els.timerIcon.style.bottom = pct+'%';
+            
+            // Color gradient logic handled by CSS gradient mostly, but we can shift classes if needed.
+            // Keeping it simple with CSS gradient for now.
+        }
+
+        function check(isCorrect) {
+            if(isPaused) return;
+            if(!isCorrect) {
+                clearInterval(timerInterval);
+                showFeedback(false);
+                speak(getQuote('fail'), 'sad');
+            } else {
+                clearInterval(timerInterval);
+                playSound('win');
+                showFeedback(true);
+                const praise = getQuote('win');
+                const next = "Lanjut!";
+                setTimeout(() => speak(`${praise} ${next}`, 'excited'), 300);
+            }
+        }
+
+        function showFeedback(success) {
+            isPaused = true;
+            els.overlay.classList.remove('hidden');
+            
+            if(success) {
+                els.ovText.innerText = "KETEMU!";
+                els.ovText.className = "text-8xl font-black text-green-400 drop-shadow-lg animate-bounce";
+                els.ovSub.innerText = getQuote('win');
+                els.ovSub.className = "text-3xl font-bold text-yellow-300 animate-pulse";
+                score += 100 + (timer*10);
+            } else {
+                els.ovText.innerText = "SALAH!";
+                els.ovText.className = "text-8xl font-black text-red-500 drop-shadow-lg animate-pulse";
+                els.ovSub.innerText = "";
+            }
+            els.finalScore.innerText = score;
+
+            setTimeout(() => {
+                els.overlay.classList.add('hidden');
+                if(success) {
+                    level++;
+                    loadLevel();
+                } else {
+                    // Game Over condition or just next level? 
+                    // Let's go next level for fun, but maybe reset score if hardcore.
+                    // For now, continue.
+                    level++;
+                    loadLevel();
+                }
+            }, 2500);
+        }
+
+        function reveal() {
+            isPaused = true;
+            if(activeOddButton) activeOddButton.classList.add('reveal-odd');
+            setTimeout(() => {
+                level++;
+                loadLevel();
+            }, 2000);
+        }
+
+        window.startGame = startGame;
+    </script>
+</body>
+</html>
