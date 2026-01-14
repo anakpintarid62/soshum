@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis Tebak Bendera Asia - Video Mode</title>
+    <title>Kuis Tebak Bendera Dunia - Video Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
@@ -30,7 +30,7 @@
                 #0072ff 15deg 30deg
             );
             animation: spin-sunburst 20s linear infinite;
-            opacity: 0.4; /* Transparansi 40% */
+            opacity: 0.4;
         }
 
         /* Varian warna sunburst */
@@ -72,31 +72,83 @@
             padding-bottom: 20px;
         }
 
-        /* TIMER */
-        .timer-circle {
-            width: 120px; /* Lebih besar */
+        /* --- JAM PASIR (HOURGLASS) CSS - DIPERBESAR 2X --- */
+        .hourglass-container {
+            width: 200px;
+            height: 240px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5));
+        }
+
+        .hg-glass {
+            width: 160px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border: 10px solid white;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(2px);
+        }
+
+        .hg-top {
+            border-bottom: none;
+            border-radius: 20px 20px 80px 80px;
+            margin-bottom: 4px;
+        }
+
+        .hg-bottom {
+            border-top: none;
+            border-radius: 80px 80px 20px 20px;
+            margin-top: 4px;
+        }
+
+        .sand {
+            background-color: #ef4444;
+            width: 100%;
+            position: absolute;
+            left: 0;
+        }
+
+        .sand-top {
+            height: 100%;
+            bottom: 0;
+            border-radius: 0 0 40px 40px;
+        }
+
+        .sand-bottom {
+            height: 0%;
+            bottom: 0;
+            border-radius: 40px 40px 0 0;
+        }
+
+        .sand-stream {
+            width: 10px;
             height: 120px;
             background: #ef4444;
-            border: 6px solid white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4.5rem;
-            font-weight: 800;
-            color: white;
-            box-shadow: 0 10px 15px rgba(0,0,0,0.3);
-            text-shadow: 3px 3px 0 #000;
-            animation: pulse-timer 1s infinite;
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            opacity: 0;
         }
 
-        @keyframes pulse-timer {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .hg-active .sand-top { animation: drainSand 5s linear forwards; }
+        .hg-active .sand-bottom { animation: fillSand 5s linear forwards; }
+        .hg-active .sand-stream { animation: streamFlow 5s linear forwards; }
+
+        @keyframes drainSand { to { height: 0%; } }
+        @keyframes fillSand { to { height: 100%; } }
+        @keyframes streamFlow { 
+            0% { opacity: 1; }
+            95% { opacity: 1; }
+            100% { opacity: 0; }
         }
 
-        /* BENDERA DENGAN GOYANGAN PELAN */
+        /* BENDERA */
         .flag-container {
             width: 380px; 
             height: 240px;
@@ -104,12 +156,10 @@
             padding: 12px;
             border-radius: 24px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-            /* transform dihapus dari sini karena dihandle animation */
             transition: transform 0.3s;
-            animation: gentle-sway 4s ease-in-out infinite; /* Animasi Goyang */
+            animation: gentle-sway 4s ease-in-out infinite;
         }
         
-        /* Keyframes Goyangan */
         @keyframes gentle-sway {
             0% { transform: rotate(-3deg); }
             50% { transform: rotate(3deg); }
@@ -117,7 +167,7 @@
         }
 
         .flag-container:hover { 
-            animation-play-state: paused; /* Berhenti goyang saat dihover */
+            animation-play-state: paused;
             transform: scale(1.05); 
         }
         
@@ -129,21 +179,21 @@
             border: 1px solid #eee;
         }
 
-        /* KOTAK JAWABAN (REVEAL) */
+        /* KOTAK JAWABAN */
         #answer-box {
             background: #22c55e;
             color: white;
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             font-weight: 900;
             text-align: center;
-            padding: 20px 40px;
-            border-radius: 20px;
-            border: 6px solid white;
-            box-shadow: 0 10px 0 #15803d, 0 20px 40px rgba(0,0,0,0.5);
+            padding: 15px 30px;
+            border-radius: 16px;
+            border: 5px solid white;
+            box-shadow: 0 8px 0 #15803d, 0 15px 30px rgba(0,0,0,0.5);
             text-transform: uppercase;
-            width: 80%;
+            width: 55%;
             margin: 0 auto;
-            transform: scale(0); /* Hidden start */
+            transform: scale(0);
             transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
@@ -193,19 +243,25 @@
                 
                 <!-- Header -->
                 <div class="flex justify-center items-center px-8 py-6 relative">
-                    <div class="bg-black/40 px-8 py-3 rounded-full border-4 border-white text-yellow-400 font-extrabold text-5xl tracking-wider yt-shadow transform scale-110">
-                        BENDERA ASIA
-                    </div>
-                    <!-- Indikator Progres Dihapus -->
+                    <!-- Progress Bar dihapus -->
                 </div>
 
                 <!-- Main Content -->
                 <div class="flex-grow flex flex-col items-center justify-center mb-4">
                     <h2 id="question-text" class="text-4xl font-bold text-white mb-6 yt-shadow">Negara manakah ini?</h2>
                     
-                    <div class="flex flex-row items-center justify-center gap-12">
-                        <!-- TIMER -->
-                        <div id="timer-text" class="timer-circle">5</div>
+                    <div class="flex flex-row items-center justify-center gap-16">
+                        
+                        <!-- JAM PASIR -->
+                        <div id="hg-container" class="hourglass-container">
+                            <div class="hg-glass hg-top">
+                                <div class="sand sand-top"></div>
+                            </div>
+                            <div class="sand-stream"></div>
+                            <div class="hg-glass hg-bottom">
+                                <div class="sand sand-bottom"></div>
+                            </div>
+                        </div>
 
                         <!-- BENDERA -->
                         <div class="flag-container">
@@ -214,8 +270,8 @@
                     </div>
                 </div>
 
-                <!-- Area Jawaban (Menggantikan Opsi) -->
-                <div class="h-[120px] flex items-center justify-center mb-6">
+                <!-- Area Jawaban -->
+                <div class="h-[100px] flex items-center justify-center mb-6">
                     <div id="answer-box" class="yt-shadow">
                         INDONESIA
                     </div>
@@ -226,11 +282,11 @@
         <!-- Start Screen -->
         <div id="start-screen" class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-10 shadow-2xl border-4 border-white text-center w-full aspect-video flex flex-col items-center justify-center relative z-20">
             <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-yellow-400 animate-pulse">
-                <i class="fas fa-globe-asia text-6xl text-blue-500"></i>
+                <i class="fas fa-globe-americas text-6xl text-blue-500"></i>
             </div>
-            <h2 class="text-4xl font-extrabold text-white yt-shadow mb-4">EDISI ASIA</h2>
+            <h2 class="text-4xl font-extrabold text-white yt-shadow mb-4">EDISI DUNIA</h2>
             <p class="text-white text-xl font-semibold mb-8 max-w-lg">
-                Tebak 48 Negara Asia!<br>
+                Tebak 195+ Negara Dunia!<br>
                 Lihat Bendera, Tebak Namanya!
             </p>
             <button onclick="game.start()" class="px-10 py-4 bg-yellow-400 hover:bg-yellow-300 text-black text-2xl font-extrabold rounded-full shadow-[0_6px_0_rgb(180,130,0)] active:shadow-none active:translate-y-2 transition-all border-2 border-white">
@@ -243,40 +299,98 @@
             <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center border-8 border-blue-500 shadow-2xl transform scale-110">
                 <div id="result-icon" class="text-8xl mb-4">🎉</div>
                 <h2 class="text-4xl font-extrabold mb-2 text-slate-800">SELESAI!</h2>
-                <p class="text-slate-600 font-bold text-xl mb-8">Kamu Hebat!</p>
+                <p class="text-slate-600 font-bold text-xl mb-8">Kamu Telah Menjelajahi Dunia!</p>
                 <button onclick="game.restart()" class="w-full py-4 bg-green-500 hover:bg-green-400 text-white rounded-2xl font-bold text-xl shadow-[0_6px_0_rgb(20,120,50)] active:shadow-none active:translate-y-2 transition-all">Main Lagi</button>
             </div>
         </div>
     </div>
 
     <script>
-        // DATA ASIA (48 Negara)
+        // DATA DUNIA (197 Negara)
+        
+        // LEVEL 1: Populer / Tetangga / G20 (60 Negara)
         const LEVEL_1 = [
             {name: "INDONESIA", code: "id"}, {name: "MALAYSIA", code: "my"}, {name: "SINGAPURA", code: "sg"},
             {name: "THAILAND", code: "th"}, {name: "VIETNAM", code: "vn"}, {name: "FILIPINA", code: "ph"},
-            {name: "BRUNEI", code: "bn"}, {name: "LAOS", code: "la"}, {name: "MYANMAR", code: "mm"},
-            {name: "KAMBOJA", code: "kh"}, {name: "TIMOR LESTE", code: "tl"}, {name: "JEPANG", code: "jp"},
-            {name: "KOREA SELATAN", code: "kr"}, {name: "CHINA", code: "cn"}, {name: "INDIA", code: "in"},
-            {name: "ARAB SAUDI", code: "sa"}, {name: "PALESTINA", code: "ps"}, {name: "TURKI", code: "tr"}
+            {name: "BRUNEI", code: "bn"}, {name: "AMERIKA SERIKAT", code: "us"}, {name: "INGGRIS", code: "gb"},
+            {name: "AUSTRALIA", code: "au"}, {name: "JEPANG", code: "jp"}, {name: "KOREA SELATAN", code: "kr"},
+            {name: "CHINA", code: "cn"}, {name: "INDIA", code: "in"}, {name: "ARAB SAUDI", code: "sa"},
+            {name: "RUSIA", code: "ru"}, {name: "JERMAN", code: "de"}, {name: "PRANCIS", code: "fr"},
+            {name: "ITALIA", code: "it"}, {name: "SPANYOL", code: "es"}, {name: "BELANDA", code: "nl"},
+            {name: "BRASIL", code: "br"}, {name: "ARGENTINA", code: "ar"}, {name: "MESIR", code: "eg"},
+            {name: "TURKI", code: "tr"}, {name: "KANADA", code: "ca"}, {name: "MEKSIKO", code: "mx"},
+            {name: "PORTUGAL", code: "pt"}, {name: "PALESTINA", code: "ps"}, {name: "QATAR", code: "qa"},
+            {name: "SWISS", code: "ch"}, {name: "SWEDIA", code: "se"}, {name: "BELGIA", code: "be"},
+            {name: "NORWEGIA", code: "no"}, {name: "DENMARK", code: "dk"}, {name: "FINLANDIA", code: "fi"},
+            {name: "POLANDIA", code: "pl"}, {name: "UKRAINA", code: "ua"}, {name: "YUNANI", code: "gr"},
+            {name: "IRAK", code: "iq"}, {name: "IRAN", code: "ir"}, {name: "UNI EMIRAT ARAB", code: "ae"},
+            {name: "SELANDIA BARU", code: "nz"}, {name: "AFRIKA SELATAN", code: "za"}, {name: "MAROKO", code: "ma"},
+            {name: "NIGERIA", code: "ng"}, {name: "KOLOMBIA", code: "co"}, {name: "CHILE", code: "cl"},
+            {name: "PERU", code: "pe"}, {name: "KOREA UTARA", code: "kp"}, {name: "HONG KONG", code: "hk"},
+            {name: "TAIWAN", code: "tw"}, {name: "PAKISTAN", code: "pk"}, {name: "BANGLADESH", code: "bd"},
+            {name: "MYANMAR", code: "mm"}, {name: "KAMBOJA", code: "kh"}, {name: "TIMOR LESTE", code: "tl"},
+            {name: "LAOS", code: "la"}, {name: "AUSTRIA", code: "at"}, {name: "KROASIA", code: "hr"}
         ];
+
+        // LEVEL 2: Menengah (70 Negara)
         const LEVEL_2 = [
-            {name: "QATAR", code: "qa"}, {name: "UNI EMIRAT ARAB", code: "ae"}, {name: "IRAN", code: "ir"},
-            {name: "IRAK", code: "iq"}, {name: "YAMAN", code: "ye"}, {name: "SURIAH", code: "sy"},
-            {name: "LEBANON", code: "lb"}, {name: "YORDANIA", code: "jo"}, {name: "KUWAIT", code: "kw"},
-            {name: "OMAN", code: "om"}, {name: "BAHRAIN", code: "bh"}, {name: "HONG KONG", code: "hk"},
-            {name: "TAIWAN", code: "tw"}, {name: "KOREA UTARA", code: "kp"}, {name: "PAKISTAN", code: "pk"},
-            {name: "BANGLADESH", code: "bd"}, {name: "SRI LANKA", code: "lk"}
+            {name: "IRLANDIA", code: "ie"}, {name: "ISLANDIA", code: "is"}, {name: "SKOTLANDIA", code: "gb-sct"},
+            {name: "WALES", code: "gb-wls"}, {name: "CEKO", code: "cz"}, {name: "HUNGARIA", code: "hu"},
+            {name: "ROMANIA", code: "ro"}, {name: "BULGARIA", code: "bg"}, {name: "SERBIA", code: "rs"},
+            {name: "YORDANIA", code: "jo"}, {name: "SURIAH", code: "sy"}, {name: "LEBANON", code: "lb"},
+            {name: "KUWAIT", code: "kw"}, {name: "OMAN", code: "om"}, {name: "YAMAN", code: "ye"},
+            {name: "SRI LANKA", code: "lk"}, {name: "NEPAL", code: "np"}, {name: "AFGHANISTAN", code: "af"},
+            {name: "KAZAKHSTAN", code: "kz"}, {name: "UZBEKISTAN", code: "uz"}, {name: "KENYA", code: "ke"},
+            {name: "GHANA", code: "gh"}, {name: "PANTAI GADING", code: "ci"}, {name: "KAMERUN", code: "cm"},
+            {name: "SENEGAL", code: "sn"}, {name: "TUNISIA", code: "tn"}, {name: "ALJAZAIR", code: "dz"},
+            {name: "ETHIOPIA", code: "et"}, {name: "TANZANIA", code: "tz"}, {name: "UGANDA", code: "ug"},
+            {name: "ZIMBABWE", code: "zw"}, {name: "URUGUAY", code: "uy"}, {name: "PARAGUAY", code: "py"},
+            {name: "VENEZUELA", code: "ve"}, {name: "EKUADOR", code: "ec"}, {name: "BOLIVIA", code: "bo"},
+            {name: "KUBA", code: "cu"}, {name: "JAMAIKA", code: "jm"}, {name: "PANAMA", code: "pa"},
+            {name: "KOSTA RIKA", code: "cr"}, {name: "HONDURAS", code: "hn"}, {name: "GUATEMALA", code: "gt"},
+            {name: "EL SALVADOR", code: "sv"}, {name: "FIJI", code: "fj"}, {name: "PAPUA NUGINI", code: "pg"},
+            {name: "MONGOLIA", code: "mn"}, {name: "BAHRAIN", code: "bh"}, {name: "MALADEWA", code: "mv"},
+            {name: "SIPRUS", code: "cy"}, {name: "ESTONIA", code: "ee"}, {name: "LATVIA", code: "lv"},
+            {name: "LITHUANIA", code: "lt"}, {name: "BELARUS", code: "by"}, {name: "SLOVAKIA", code: "sk"},
+            {name: "SLOVENIA", code: "si"}, {name: "BOSNIA", code: "ba"}, {name: "ALBANIA", code: "al"},
+            {name: "MAKEDONIA", code: "mk"}, {name: "MONTENEGRO", code: "me"}, {name: "MALTA", code: "mt"},
+            {name: "LUXEMBOURG", code: "lu"}, {name: "MONAKO", code: "mc"}, {name: "VATICAN", code: "va"},
+            {name: "SAN MARINO", code: "sm"}, {name: "ANDORRA", code: "ad"}, {name: "LIECHTENSTEIN", code: "li"},
+            {name: "GEORGIA", code: "ge"}, {name: "ARMENIA", code: "am"}, {name: "AZERBAIJAN", code: "az"},
+            {name: "MADAGASKAR", code: "mg"}
         ];
+
+        // LEVEL 3: Sulit / Jarang Didengar (67 Negara)
         const LEVEL_3 = [
-            {name: "NEPAL", code: "np"}, {name: "MALADEWA", code: "mv"}, {name: "AFGHANISTAN", code: "af"},
-            {name: "MONGOLIA", code: "mn"}, {name: "BHUTAN", code: "bt"}, {name: "KAZAKHSTAN", code: "kz"},
-            {name: "UZBEKISTAN", code: "uz"}, {name: "TURKMENISTAN", code: "tm"}, {name: "TAJIKISTAN", code: "tj"},
-            {name: "KIRGIZSTAN", code: "kg"}, {name: "AZERBAIJAN", code: "az"}, {name: "ARMENIA", code: "am"},
-            {name: "GEORGIA", code: "ge"}
+            {name: "TURKMENISTAN", code: "tm"}, {name: "TAJIKISTAN", code: "tj"}, {name: "KIRGIZSTAN", code: "kg"},
+            {name: "BHUTAN", code: "bt"}, {name: "LAOS", code: "la"}, {name: "LIBYA", code: "ly"},
+            {name: "SUDAN", code: "sd"}, {name: "SUDAN SELATAN", code: "ss"}, {name: "SOMALIA", code: "so"},
+            {name: "DJIBOUTI", code: "dj"}, {name: "ERITREA", code: "er"}, {name: "MOZAMBIK", code: "mz"},
+            {name: "ANGOLA", code: "ao"}, {name: "NAMIBIA", code: "na"}, {name: "BOTSWANA", code: "bw"},
+            {name: "ZAMBIA", code: "zm"}, {name: "MALAWI", code: "mw"}, {name: "RWANDA", code: "rw"},
+            {name: "BURUNDI", code: "bi"}, {name: "KONGO", code: "cg"}, {name: "DR KONGO", code: "cd"},
+            {name: "GABON", code: "ga"}, {name: "GUINEA KHATULISTIWA", code: "gq"}, {name: "CHAD", code: "td"},
+            {name: "REPUBLIK AFRIKA TENGAH", code: "cf"}, {name: "NIGER", code: "ne"}, {name: "MALI", code: "ml"},
+            {name: "MAURITANIA", code: "mr"}, {name: "BURKINA FASO", code: "bf"}, {name: "GUINEA", code: "gn"},
+            {name: "SIERRA LEONE", code: "sl"}, {name: "LIBERIA", code: "lr"}, {name: "TOGO", code: "tg"},
+            {name: "BENIN", code: "bj"}, {name: "GAMBIA", code: "gm"}, {name: "GUINEA-BISSAU", code: "gw"},
+            {name: "TANJUNG VERDE", code: "cv"}, {name: "SAO TOME & PRINCIPE", code: "st"}, {name: "KOMORO", code: "km"},
+            {name: "MAURITIUS", code: "mu"}, {name: "SEYCHELLES", code: "sc"}, {name: "LESOTHO", code: "ls"},
+            {name: "ESWATINI", code: "sz"}, {name: "HAITI", code: "ht"}, {name: "DOMINIKA", code: "do"},
+            {name: "BAHAMAS", code: "bs"}, {name: "BARBADOS", code: "bb"}, {name: "TRINIDAD & TOBAGO", code: "tt"},
+            {name: "GRENADA", code: "gd"}, {name: "SAINT LUCIA", code: "lc"}, {name: "ANTIGUA & BARBUDA", code: "ag"},
+            {name: "SAINT KITTS & NEVIS", code: "kn"}, {name: "BELIZE", code: "bz"}, {name: "NIKARAGUA", code: "ni"},
+            {name: "SURINAME", code: "sr"}, {name: "GUYANA", code: "gy"}, {name: "SOLOMON ISLANDS", code: "sb"},
+            {name: "VANUATU", code: "vu"}, {name: "SAMOA", code: "ws"}, {name: "TONGA", code: "to"},
+            {name: "TUVALU", code: "tv"}, {name: "KIRIBATI", code: "ki"}, {name: "NAURU", code: "nr"},
+            {name: "PALAU", code: "pw"}, {name: "MICRONESIA", code: "fm"}, {name: "MARSHALL ISLANDS", code: "mh"},
+            {name: "MOLDOVA", code: "md"}
         ];
 
         const ALL_DATA = [...LEVEL_1, ...LEVEL_2, ...LEVEL_3];
-        const TOTAL_QUESTIONS = ALL_DATA.length;
+        // Hapus duplikat jika ada (Set)
+        const UNIQUE_DATA = [...new Map(ALL_DATA.map(item => [item.code, item])).values()];
+        const TOTAL_QUESTIONS = UNIQUE_DATA.length;
         const BG_CLASSES = ['bg-blue', 'bg-pink', 'bg-gold', 'bg-green'];
 
         const bgMusic = document.getElementById('bg-music');
@@ -295,16 +409,16 @@
                 this.qIndex = 0;
                 this.questions = [];
                 this.currentQ = null;
-                this.timerId = null;
+                this.timeoutId = null;
 
                 // Elements
                 this.elStart = document.getElementById('start-screen');
                 this.elGame = document.getElementById('game-card');
                 this.elResult = document.getElementById('result-modal');
                 this.elFlag = document.getElementById('flag-img');
-                this.elTimerText = document.getElementById('timer-text');
+                this.elHG = document.getElementById('hg-container');
                 this.elAnswerBox = document.getElementById('answer-box');
-                // Progress element dihapus
+                // Progress UI reference removed
                 this.elQuestionText = document.getElementById('question-text');
             }
 
@@ -312,11 +426,7 @@
                 toggleMusic();
                 this.qIndex = 0;
                 // Shuffle all questions
-                this.questions = [
-                    ...this.shuffle(LEVEL_1),
-                    ...this.shuffle(LEVEL_2),
-                    ...this.shuffle(LEVEL_3)
-                ];
+                this.questions = this.shuffle([...UNIQUE_DATA]); // Shuffle all
 
                 this.elStart.classList.add('hidden');
                 this.elResult.classList.add('hidden');
@@ -342,9 +452,9 @@
                 this.currentQ = this.questions[this.qIndex];
                 this.qIndex++;
 
-                // Reset UI (Update progress dihapus)
-                this.elAnswerBox.classList.remove('show'); // Hide Answer
-                this.elTimerText.style.display = 'flex'; // Show Timer
+                // Reset UI
+                // Progress update removed
+                this.elAnswerBox.classList.remove('show'); 
                 this.elQuestionText.innerText = "Negara manakah ini?";
                 
                 // Random BG
@@ -355,31 +465,23 @@
                 // Set Flag
                 this.elFlag.src = `https://flagcdn.com/w320/${this.currentQ.code}.png`;
 
-                // Start Timer (5 Detik)
-                this.startTimer(5);
+                // START TIMER (Jam Pasir)
+                this.startHourglass(5);
             }
 
-            startTimer(seconds) {
-                clearInterval(this.timerId);
-                let timeLeft = seconds;
-                this.elTimerText.innerText = timeLeft;
-                this.elTimerText.style.background = '#ef4444'; // Merah
+            startHourglass(seconds) {
+                clearTimeout(this.timeoutId);
+                
+                this.elHG.classList.remove('hg-active');
+                void this.elHG.offsetWidth; // Force Reflow
+                this.elHG.classList.add('hg-active');
 
-                this.timerId = setInterval(() => {
-                    timeLeft--;
-                    this.elTimerText.innerText = timeLeft;
-
-                    if (timeLeft < 0) {
-                        clearInterval(this.timerId);
-                        this.revealAnswer();
-                    }
-                }, 1000); 
+                this.timeoutId = setTimeout(() => {
+                    this.revealAnswer();
+                }, seconds * 1000); 
             }
 
             revealAnswer() {
-                // Sembunyikan Timer (opsional, atau biarkan 0)
-                this.elTimerText.innerText = "0";
-                
                 // Tampilkan Jawaban
                 this.elAnswerBox.innerText = this.currentQ.name;
                 this.elAnswerBox.classList.add('show');
