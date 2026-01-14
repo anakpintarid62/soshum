@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Tebak Bendera Asia - Video Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            overflow-x: hidden;
+        }
+
+        /* --- CONTAINER SUNBURST ANIMATION --- */
+        .card-sunburst-bg {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            background: repeating-conic-gradient(
+                from 0deg,
+                #00C9FF 0deg 15deg,
+                #0072ff 15deg 30deg
+            );
+            animation: spin-sunburst 20s linear infinite;
+            opacity: 0.4; /* Transparansi 40% */
+        }
+
+        /* Varian warna sunburst */
+        .bg-blue .card-sunburst-bg { background: repeating-conic-gradient(from 0deg, #00C9FF 0deg 15deg, #0072ff 15deg 30deg); }
+        .bg-pink .card-sunburst-bg { background: repeating-conic-gradient(from 0deg, #ff758c 0deg 15deg, #ff7eb3 15deg 30deg); }
+        .bg-gold .card-sunburst-bg { background: repeating-conic-gradient(from 0deg, #FFD700 0deg 15deg, #FF8C00 15deg 30deg); }
+        .bg-green .card-sunburst-bg { background: repeating-conic-gradient(from 0deg, #4ade80 0deg 15deg, #22c55e 15deg 30deg); }
+
+        @keyframes spin-sunburst {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .yt-shadow {
+            text-shadow: 4px 4px 0px #000000, -2px -2px 0px #000000;
+            -webkit-text-stroke: 1px black;
+        }
+
+        #game-card {
+            aspect-ratio: 16/9;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            border: 8px solid white;
+            border-radius: 24px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background: #333;
+        }
+
+        .game-content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-bottom: 20px;
+        }
+
+        /* TIMER */
+        .timer-circle {
+            width: 120px; /* Lebih besar */
+            height: 120px;
+            background: #ef4444;
+            border: 6px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+            text-shadow: 3px 3px 0 #000;
+            animation: pulse-timer 1s infinite;
+        }
+
+        @keyframes pulse-timer {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* BENDERA DENGAN GOYANGAN PELAN */
+        .flag-container {
+            width: 380px; 
+            height: 240px;
+            background: white;
+            padding: 12px;
+            border-radius: 24px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            /* transform dihapus dari sini karena dihandle animation */
+            transition: transform 0.3s;
+            animation: gentle-sway 4s ease-in-out infinite; /* Animasi Goyang */
+        }
+        
+        /* Keyframes Goyangan */
+        @keyframes gentle-sway {
+            0% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+            100% { transform: rotate(-3deg); }
+        }
+
+        .flag-container:hover { 
+            animation-play-state: paused; /* Berhenti goyang saat dihover */
+            transform: scale(1.05); 
+        }
+        
+        .flag-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 1px solid #eee;
+        }
+
+        /* KOTAK JAWABAN (REVEAL) */
+        #answer-box {
+            background: #22c55e;
+            color: white;
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-align: center;
+            padding: 20px 40px;
+            border-radius: 20px;
+            border: 6px solid white;
+            box-shadow: 0 10px 0 #15803d, 0 20px 40px rgba(0,0,0,0.5);
+            text-transform: uppercase;
+            width: 80%;
+            margin: 0 auto;
+            transform: scale(0); /* Hidden start */
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        #answer-box.show {
+            transform: scale(1);
+        }
+
+        .music-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid white;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .music-btn:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <audio id="bg-music" loop preload="auto">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-happy-days-143.mp3" type="audio/mp3">
+    </audio>
+    
+    <button id="toggle-music" class="music-btn" onclick="toggleMusic()">
+        <i class="fas fa-volume-up"></i>
+    </button>
+
+    <div class="w-full max-w-4xl relative z-10">
+        
+        <!-- Game Container -->
+        <div id="game-card" class="rounded-3xl hidden w-full bg-blue">
+            
+            <div class="card-sunburst-bg"></div>
+
+            <div class="game-content">
+                
+                <!-- Header -->
+                <div class="flex justify-center items-center px-8 py-6 relative">
+                    <div class="bg-black/40 px-8 py-3 rounded-full border-4 border-white text-yellow-400 font-extrabold text-5xl tracking-wider yt-shadow transform scale-110">
+                        BENDERA ASIA
+                    </div>
+                    <!-- Indikator Progres Dihapus -->
+                </div>
+
+                <!-- Main Content -->
+                <div class="flex-grow flex flex-col items-center justify-center mb-4">
+                    <h2 id="question-text" class="text-4xl font-bold text-white mb-6 yt-shadow">Negara manakah ini?</h2>
+                    
+                    <div class="flex flex-row items-center justify-center gap-12">
+                        <!-- TIMER -->
+                        <div id="timer-text" class="timer-circle">5</div>
+
+                        <!-- BENDERA -->
+                        <div class="flag-container">
+                            <img id="flag-img" src="" alt="Bendera" class="flag-img">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Area Jawaban (Menggantikan Opsi) -->
+                <div class="h-[120px] flex items-center justify-center mb-6">
+                    <div id="answer-box" class="yt-shadow">
+                        INDONESIA
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-10 shadow-2xl border-4 border-white text-center w-full aspect-video flex flex-col items-center justify-center relative z-20">
+            <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 shadow-lg border-4 border-yellow-400 animate-pulse">
+                <i class="fas fa-globe-asia text-6xl text-blue-500"></i>
+            </div>
+            <h2 class="text-4xl font-extrabold text-white yt-shadow mb-4">EDISI ASIA</h2>
+            <p class="text-white text-xl font-semibold mb-8 max-w-lg">
+                Tebak 48 Negara Asia!<br>
+                Lihat Bendera, Tebak Namanya!
+            </p>
+            <button onclick="game.start()" class="px-10 py-4 bg-yellow-400 hover:bg-yellow-300 text-black text-2xl font-extrabold rounded-full shadow-[0_6px_0_rgb(180,130,0)] active:shadow-none active:translate-y-2 transition-all border-2 border-white">
+                MULAI PETUALANGAN! 🚀
+            </button>
+        </div>
+
+        <!-- Result Modal -->
+        <div id="result-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 p-4 backdrop-blur-md">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center border-8 border-blue-500 shadow-2xl transform scale-110">
+                <div id="result-icon" class="text-8xl mb-4">🎉</div>
+                <h2 class="text-4xl font-extrabold mb-2 text-slate-800">SELESAI!</h2>
+                <p class="text-slate-600 font-bold text-xl mb-8">Kamu Hebat!</p>
+                <button onclick="game.restart()" class="w-full py-4 bg-green-500 hover:bg-green-400 text-white rounded-2xl font-bold text-xl shadow-[0_6px_0_rgb(20,120,50)] active:shadow-none active:translate-y-2 transition-all">Main Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATA ASIA (48 Negara)
+        const LEVEL_1 = [
+            {name: "INDONESIA", code: "id"}, {name: "MALAYSIA", code: "my"}, {name: "SINGAPURA", code: "sg"},
+            {name: "THAILAND", code: "th"}, {name: "VIETNAM", code: "vn"}, {name: "FILIPINA", code: "ph"},
+            {name: "BRUNEI", code: "bn"}, {name: "LAOS", code: "la"}, {name: "MYANMAR", code: "mm"},
+            {name: "KAMBOJA", code: "kh"}, {name: "TIMOR LESTE", code: "tl"}, {name: "JEPANG", code: "jp"},
+            {name: "KOREA SELATAN", code: "kr"}, {name: "CHINA", code: "cn"}, {name: "INDIA", code: "in"},
+            {name: "ARAB SAUDI", code: "sa"}, {name: "PALESTINA", code: "ps"}, {name: "TURKI", code: "tr"}
+        ];
+        const LEVEL_2 = [
+            {name: "QATAR", code: "qa"}, {name: "UNI EMIRAT ARAB", code: "ae"}, {name: "IRAN", code: "ir"},
+            {name: "IRAK", code: "iq"}, {name: "YAMAN", code: "ye"}, {name: "SURIAH", code: "sy"},
+            {name: "LEBANON", code: "lb"}, {name: "YORDANIA", code: "jo"}, {name: "KUWAIT", code: "kw"},
+            {name: "OMAN", code: "om"}, {name: "BAHRAIN", code: "bh"}, {name: "HONG KONG", code: "hk"},
+            {name: "TAIWAN", code: "tw"}, {name: "KOREA UTARA", code: "kp"}, {name: "PAKISTAN", code: "pk"},
+            {name: "BANGLADESH", code: "bd"}, {name: "SRI LANKA", code: "lk"}
+        ];
+        const LEVEL_3 = [
+            {name: "NEPAL", code: "np"}, {name: "MALADEWA", code: "mv"}, {name: "AFGHANISTAN", code: "af"},
+            {name: "MONGOLIA", code: "mn"}, {name: "BHUTAN", code: "bt"}, {name: "KAZAKHSTAN", code: "kz"},
+            {name: "UZBEKISTAN", code: "uz"}, {name: "TURKMENISTAN", code: "tm"}, {name: "TAJIKISTAN", code: "tj"},
+            {name: "KIRGIZSTAN", code: "kg"}, {name: "AZERBAIJAN", code: "az"}, {name: "ARMENIA", code: "am"},
+            {name: "GEORGIA", code: "ge"}
+        ];
+
+        const ALL_DATA = [...LEVEL_1, ...LEVEL_2, ...LEVEL_3];
+        const TOTAL_QUESTIONS = ALL_DATA.length;
+        const BG_CLASSES = ['bg-blue', 'bg-pink', 'bg-gold', 'bg-green'];
+
+        const bgMusic = document.getElementById('bg-music');
+
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.2;
+                bgMusic.play().catch(e => console.log(e));
+            } else {
+                bgMusic.pause();
+            }
+        }
+
+        class Game {
+            constructor() {
+                this.qIndex = 0;
+                this.questions = [];
+                this.currentQ = null;
+                this.timerId = null;
+
+                // Elements
+                this.elStart = document.getElementById('start-screen');
+                this.elGame = document.getElementById('game-card');
+                this.elResult = document.getElementById('result-modal');
+                this.elFlag = document.getElementById('flag-img');
+                this.elTimerText = document.getElementById('timer-text');
+                this.elAnswerBox = document.getElementById('answer-box');
+                // Progress element dihapus
+                this.elQuestionText = document.getElementById('question-text');
+            }
+
+            start() {
+                toggleMusic();
+                this.qIndex = 0;
+                // Shuffle all questions
+                this.questions = [
+                    ...this.shuffle(LEVEL_1),
+                    ...this.shuffle(LEVEL_2),
+                    ...this.shuffle(LEVEL_3)
+                ];
+
+                this.elStart.classList.add('hidden');
+                this.elResult.classList.add('hidden');
+                this.elGame.classList.remove('hidden');
+                
+                this.nextRound();
+            }
+
+            restart() {
+                this.start();
+            }
+
+            shuffle(array) {
+                return array.sort(() => Math.random() - 0.5);
+            }
+
+            nextRound() {
+                if (this.qIndex >= this.questions.length) {
+                    this.endGame();
+                    return;
+                }
+
+                this.currentQ = this.questions[this.qIndex];
+                this.qIndex++;
+
+                // Reset UI (Update progress dihapus)
+                this.elAnswerBox.classList.remove('show'); // Hide Answer
+                this.elTimerText.style.display = 'flex'; // Show Timer
+                this.elQuestionText.innerText = "Negara manakah ini?";
+                
+                // Random BG
+                const randomBgClass = BG_CLASSES[Math.floor(Math.random() * BG_CLASSES.length)];
+                this.elGame.className = `rounded-3xl hidden w-full ${randomBgClass}`;
+                this.elGame.classList.remove('hidden');
+
+                // Set Flag
+                this.elFlag.src = `https://flagcdn.com/w320/${this.currentQ.code}.png`;
+
+                // Start Timer (5 Detik)
+                this.startTimer(5);
+            }
+
+            startTimer(seconds) {
+                clearInterval(this.timerId);
+                let timeLeft = seconds;
+                this.elTimerText.innerText = timeLeft;
+                this.elTimerText.style.background = '#ef4444'; // Merah
+
+                this.timerId = setInterval(() => {
+                    timeLeft--;
+                    this.elTimerText.innerText = timeLeft;
+
+                    if (timeLeft < 0) {
+                        clearInterval(this.timerId);
+                        this.revealAnswer();
+                    }
+                }, 1000); 
+            }
+
+            revealAnswer() {
+                // Sembunyikan Timer (opsional, atau biarkan 0)
+                this.elTimerText.innerText = "0";
+                
+                // Tampilkan Jawaban
+                this.elAnswerBox.innerText = this.currentQ.name;
+                this.elAnswerBox.classList.add('show');
+                
+                // Update Teks Tanya
+                this.elQuestionText.innerText = "Jawabannya adalah...";
+
+                // Suara
+                this.speak(this.currentQ.name);
+
+                // Lanjut ke soal berikutnya setelah 3 detik
+                setTimeout(() => {
+                    this.nextRound();
+                }, 3000);
+            }
+
+            speak(text) {
+                if ('speechSynthesis' in window) {
+                    const utter = new SpeechSynthesisUtterance(text);
+                    utter.lang = 'id-ID';
+                    window.speechSynthesis.speak(utter);
+                }
+            }
+
+            endGame() {
+                this.elGame.classList.add('hidden');
+                this.elResult.classList.remove('hidden');
+            }
+        }
+
+        const game = new Game();
+    </script>
+</body>
+</html>
